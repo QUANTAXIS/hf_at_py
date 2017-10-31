@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
 __title__ = ''
@@ -7,15 +7,16 @@ __mtime__ = '2016/9/22'
 """
 
 import _thread
-import time
-from time import sleep
 import itertools
+from time import time, sleep
 
 from py_at.switch import switch
-from py_at.at_struct import *
+from py_at.enums import OrderType
+from py_at.structs import DirectType, InfoField, InstrumentField, OffsetType, OrderField, OrderStatus, PositionField, TradeField, TradingAccount
 from py_at.adapters.trade import TradeAdapter
 from py_ctp.trade import Trade
-from py_ctp.ctp_struct import *
+from py_ctp.structs import CThostFtdcInputOrderActionField, CThostFtdcInputOrderField, CThostFtdcInstrumentField, CThostFtdcInstrumentStatusField, CThostFtdcInvestorPositionField, CThostFtdcOrderField, CThostFtdcRspInfoField, CThostFtdcRspUserLoginField, CThostFtdcSettlementInfoConfirmField, CThostFtdcTradingAccountField
+from py_ctp.enums import ActionFlagType, ContingentConditionType, DirectionType, OffsetFlagType, ForceCloseReasonType, HedgeFlagType, OrderPriceTypeType, PosiDirectionType, TimeConditionType, VolumeConditionType, OrderStatusType
 
 
 class CtpTrade(TradeAdapter):
@@ -24,20 +25,22 @@ class CtpTrade(TradeAdapter):
     def __init__(self):
         super().__init__()
         self._req = 0
+        self.qryStart = False
         self.__dic_orderid_sysid = {}
         self.__posi = []
         self.t = Trade()
 
     def __qry(self):
         """查询帐号相关信息"""
+        self.qryStart = True
         self.t.ReqQryInstrument()
         sleep(1.1)
         while not self.Account or self.IsLogin:
             """查询持仓与权益"""
             sleep(1.1)
-            #self.t.ReqQryInvestorPosition(self.BrokerID, self.Investor)
+            self.t.ReqQryInvestorPosition(self.BrokerID, self.Investor)
             sleep(1.1)
-            #self.t.ReqQryTradingAccount(self.BrokerID, self.Investor)
+            self.t.ReqQryTradingAccount(self.BrokerID, self.Investor)
 
     def __OnFrontConnected(self):
         self.OnFrontConnected()
@@ -46,11 +49,7 @@ class CtpTrade(TradeAdapter):
         self.IsLogin = False
         self.OnFrontDisConnected(nReason)
 
-    def __OnRspUserLogin(self,
-                         pRspUserLogin=CThostFtdcRspUserLoginField,
-                         pRspInfo=CThostFtdcRspInfoField,
-                         nRequestID=int,
-                         bIsLast=bool):
+    def __OnRspUserLogin(self, pRspUserLogin=CThostFtdcRspUserLoginField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         """"""
         self.Investor = pRspUserLogin.getUserID()
         self.BrokerID = pRspUserLogin.getBrokerID()
@@ -65,15 +64,12 @@ class CtpTrade(TradeAdapter):
             self.OnRspUserLogin(info)
         else:
             self.t.ReqSettlementInfoConfirm(self.BrokerID, self.Investor)
-            time.sleep(0.5)
-            """查询持仓与权益"""
-            _thread.start_new_thread(self.__qry, ())  # 开启查询
+            if not self.qryStart:
+                sleep(0.5)
+                """查询持仓与权益"""
+                _thread.start_new_thread(self.__qry, ())  # 开启查询
 
-    def __OnRspQryInstrument(self,
-                             pInstrument=CThostFtdcInstrumentField,
-                             pRspInfo=CThostFtdcRspInfoField,
-                             nRequestID=int,
-                             bIsLast=bool):
+    def __OnRspQryInstrument(self, pInstrument=CThostFtdcInstrumentField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         """"""
         inst = InstrumentField()
         inst.InstrumentID = pInstrument.getInstrumentID()
@@ -84,11 +80,7 @@ class CtpTrade(TradeAdapter):
         inst.MaxOrderVolume = pInstrument.getMaxLimitOrderVolume()
         self.DicInstrument[inst.InstrumentID] = inst
 
-    def __OnRspQryAccount(self,
-                          pTradingAccount=CThostFtdcTradingAccountField,
-                          pRspInfo=CThostFtdcRspInfoField,
-                          nRequestID=int,
-                          bIsLast=bool):
+    def __OnRspQryAccount(self, pTradingAccount=CThostFtdcTradingAccountField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         """"""
         if not self.Account:
             self.Account = TradingAccount()
@@ -98,11 +90,8 @@ class CtpTrade(TradeAdapter):
         self.Account.CurrMargin = pTradingAccount.getCurrMargin()
         self.Account.FrozenCash = pTradingAccount.getFrozenCash()
         self.Account.PositionProfit = pTradingAccount.getPositionProfit()
-        self.Account.PreBalance = pTradingAccount.getPreBalance(
-        ) + pTradingAccount.getDeposit() + pTradingAccount.getWithdraw()
-        self.Account.Fund = self.Account.PreBalance + pTradingAccount.getCloseProfit(
-        ) + pTradingAccount.getPositionProfit(
-        ) - pTradingAccount.getCommission()
+        self.Account.PreBalance = pTradingAccount.getPreBalance() + pTradingAccount.getDeposit() + pTradingAccount.getWithdraw()
+        self.Account.Fund = self.Account.PreBalance + pTradingAccount.getCloseProfit() + pTradingAccount.getPositionProfit() - pTradingAccount.getCommission()
         self.Account.Risk = self.Account.CurrMargin / self.Account.Fund
         if not self.IsLogin:
             self.IsLogin = True
@@ -111,19 +100,14 @@ class CtpTrade(TradeAdapter):
             info.ErrorMsg = '正确'
             self.OnRspUserLogin(info)
 
-    def __OnRspQryPosition(self,
-                           pInvestorPosition=CThostFtdcInvestorPositionField,
-                           pRspInfo=CThostFtdcRspInfoField,
-                           nRequestID=int,
-                           bIsLast=bool):
+    def __OnRspQryPosition(self, pInvestorPosition=CThostFtdcInvestorPositionField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         """"""
         if pInvestorPosition.getInstrumentID() != '':  # 偶尔出现NULL的数据导致数据转换错误
-            self.__posi.append(
-                pInvestorPosition)  # Struct(**f.__dict__)) #dict -> object
+            self.__posi.append(pInvestorPosition)  # Struct(**f.__dict__)) #dict -> object
 
         if bIsLast:
-            #先排序再group才有效
-            self.__posi = sorted(self.__posi, key= lambda c: '{0}_{1}'.format(c.getInstrumentID(), DirectType.Buy if c.getPosiDirection() == PosiDirectionType.Long else DirectType.Sell))
+            # 先排序再group才有效
+            self.__posi = sorted(self.__posi, key=lambda c: '{0}_{1}'.format(c.getInstrumentID(), DirectType.Buy if c.getPosiDirection() == PosiDirectionType.Long else DirectType.Sell))
             # direction需从posidiction转换为dictiontype
             for key, group in itertools.groupby(self.__posi, lambda c: '{0}_{1}'.format(c.getInstrumentID(), DirectType.Buy if c.getPosiDirection() == PosiDirectionType.Long else DirectType.Sell)):
                 pf = self.DicPositionField.get(key)
@@ -142,8 +126,7 @@ class CtpTrade(TradeAdapter):
                 for g in group:
                     if not pf.InstrumentID:
                         pf.InstrumentID = g.getInstrumentID()
-                        pf.Direction = DirectType.Buy if g.getPosiDirection(
-                        ) == PosiDirectionType.Long else DirectType.Sell
+                        pf.Direction = DirectType.Buy if g.getPosiDirection() == PosiDirectionType.Long else DirectType.Sell
                     pf.Position += g.getPosition()
                     pf.TdPosition += g.getTodayPosition()
                     pf.YdPosition = pf.Position - pf.TdPosition
@@ -159,8 +142,7 @@ class CtpTrade(TradeAdapter):
 
     def __OnRtnOrder(self, pOrder=CThostFtdcOrderField):
         """"""
-        id = '{0}|{1}|{2}'.format(pOrder.getSessionID(),
-                                  pOrder.getFrontID(), pOrder.getOrderRef())
+        id = '{0}|{1}|{2}'.format(pOrder.getSessionID(), pOrder.getFrontID(), pOrder.getOrderRef())
         # of = OrderField()
         of = self.DicOrderField.get(id)
         if not of:
@@ -169,13 +151,9 @@ class CtpTrade(TradeAdapter):
             of.Custom = l % 1000000
             of.InstrumentID = pOrder.getInstrumentID()
             of.InsertTime = pOrder.getInsertTime()
-            of.Direction = DirectType.Buy if DirectionType(
-                pOrder.getDirection()
-            ) == DirectionType.Buy else DirectType.Sell
+            of.Direction = DirectType.Buy if DirectionType(pOrder.getDirection()) == DirectionType.Buy else DirectType.Sell
             ot = OffsetFlagType(ord(pOrder.getCombOffsetFlag()[0]))
-            of.Offset = OffsetType.Open if ot == OffsetFlagType.Open else (
-                OffsetType.CloseToday
-                if ot == OffsetFlagType.CloseToday else OffsetType.Close)
+            of.Offset = OffsetType.Open if ot == OffsetFlagType.Open else (OffsetType.CloseToday if ot == OffsetFlagType.CloseToday else OffsetType.Close)
             of.Status = OrderStatus.Normal
             of.StatusMsg = pOrder.getStatusMsg()
             of.IsLocal = pOrder.getSessionID() == self.SessionID
@@ -185,7 +163,7 @@ class CtpTrade(TradeAdapter):
             of.VolumeLeft = of.Volume
             self.DicOrderField[id] = of
             self.OnRtnOrder(of)
-            #_thread.start_new_thread(self.OnRtnOrder, (of,))  # call client OnRtnOrder event
+            # _thread.start_new_thread(self.OnRtnOrder, (of,))  # call client OnRtnOrder event
         elif pOrder.getOrderStatus() == OrderStatusType.Canceled:
             of.Status = OrderStatus.Canceled
             of.StatusMsg = pOrder.getStatusMsg()
@@ -200,20 +178,16 @@ class CtpTrade(TradeAdapter):
         else:
             if pOrder.getOrderSysID():
                 of.SysID = pOrder.getOrderSysID()
-                self.__dic_orderid_sysid[pOrder.getOrderSysID(
-                )] = id  # 记录sysid与orderid关联,方便Trade时查找处理
-            _thread.start_new_thread(self.OnRtnOrder, (of, ))
+                self.__dic_orderid_sysid[pOrder.getOrderSysID()] = id  # 记录sysid与orderid关联,方便Trade时查找处理
+            _thread.start_new_thread(self.OnRtnOrder, (of,))
 
     def __OnRtnTrade(self, f):
         """"""
         tf = TradeField()
-        tf.Direction = DirectType.Buy if f.getDirection(
-        ) == DirectionType.Buy else DirectType.Sell
+        tf.Direction = DirectType.Buy if f.getDirection() == DirectionType.Buy else DirectType.Sell
         tf.ExchangeID = f.getExchangeID()
         tf.InstrumentID = f.getInstrumentID()
-        tf.Offset = OffsetType.Open if f.getOffsetFlag(
-        ) == OffsetFlagType.Open else OffsetType.Close if f.getOffsetFlag(
-        ) == OffsetFlagType.Close else OffsetType.CloseToday
+        tf.Offset = OffsetType.Open if f.getOffsetFlag() == OffsetFlagType.Open else OffsetType.Close if f.getOffsetFlag() == OffsetFlagType.Close else OffsetType.CloseToday
         tf.Price = f.getPrice()
         tf.SysID = f.getOrderSysID()
         tf.TradeID = f.getTradeID()
@@ -228,9 +202,7 @@ class CtpTrade(TradeAdapter):
         tf.OrderID = id  # tradeid 与 orderid 关联
         of.TradeTime = tf.TradeTime
         # of.AvgPrice = (of.AvgPrice * (of.Volume - of.VolumeLeft) + pTrade.Price * pTrade.Volume) / (of.Volume - of.VolumeLeft + pTrade.Volume);
-        of.AvgPrice = (of.AvgPrice *
-                       (of.Volume - of.VolumeLeft) + tf.Price * tf.Volume) / (
-                           of.Volume - of.VolumeLeft + tf.Volume)
+        of.AvgPrice = (of.AvgPrice * (of.Volume - of.VolumeLeft) + tf.Price * tf.Volume) / (of.Volume - of.VolumeLeft + tf.Volume)
         of.TradeVolume = tf.Volume
         of.VolumeLeft -= tf.Volume
         if of.VolumeLeft == 0:
@@ -248,14 +220,11 @@ class CtpTrade(TradeAdapter):
                 self.DicPositionField[key] = pf
             pf.InstrumentID = tf.InstrumentID
             pf.Direction = tf.Direction
-            pf.Price = (pf.Price * pf.Position + tf.Price * tf.Volume) / (
-                pf.Position + tf.Volume)
+            pf.Price = (pf.Price * pf.Position + tf.Price * tf.Volume) / (pf.Position + tf.Volume)
             pf.TdPosition += tf.Volume
             pf.Position += tf.Volume
         else:
-            key = '{0}_{1}'.format(tf.InstrumentID, DirectType.Sell
-                                   if tf.Direction == DirectType.Buy else
-                                   DirectType.Buy)
+            key = '{0}_{1}'.format(tf.InstrumentID, DirectType.Sell if tf.Direction == DirectType.Buy else DirectType.Buy)
             pf = self.DicPositionField.get(key)
             if pf:  # 有可能出现无持仓的情况
                 if tf.Offset == OffsetType.CloseToday:
@@ -267,21 +236,16 @@ class CtpTrade(TradeAdapter):
                     pf.YdPosition -= max(0, tf.Volume - tdclose)
                 pf.Position -= tf.Volume
 
-        _thread.start_new_thread(self.OnRtnOrder, (of, ))
-        _thread.start_new_thread(self.OnRtnTrade, (tf, ))
+        _thread.start_new_thread(self.OnRtnOrder, (of,))
+        _thread.start_new_thread(self.OnRtnTrade, (tf,))
 
-    def __OnRspOrder(self,
-                     pInputOrder=CThostFtdcInputOrderField,
-                     pRspInfo=CThostFtdcRspInfoField,
-                     nRequestID=int,
-                     bIsLast=bool):
+    def __OnRspOrder(self, pInputOrder=CThostFtdcInputOrderField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         """"""
         info = InfoField()
         info.ErrorID = pRspInfo.getErrorID()
         info.ErrorMsg = pRspInfo.getErrorMsg()
 
-        id = '{0}|{1}|{2}'.format(self.SessionID, '0',
-                                  pInputOrder.getOrderRef())
+        id = '{0}|{1}|{2}'.format(self.SessionID, '0', pInputOrder.getOrderRef())
         of = self.DicOrderField.get(id)
         if not of:
             of = OrderField()
@@ -289,14 +253,10 @@ class CtpTrade(TradeAdapter):
             of.Custom = l % 1000000
             of.InstrumentID = pInputOrder.getInstrumentID()
             of.InsertTime = time.strftime('%Y%M%d %H:%M:%S', time.localtime())
-            #对direction需特别处理（具体见ctp_struct）
-            of.Direction = DirectType.Buy if DirectionType(
-                pInputOrder.getDirection()
-            ) == DirectionType.Buy else DirectType.Sell
+            # 对direction需特别处理（具体见ctp_struct）
+            of.Direction = DirectType.Buy if DirectionType(pInputOrder.getDirection()) == DirectionType.Buy else DirectType.Sell
             ot = OffsetFlagType(ord(pInputOrder.getCombOffsetFlag()[0]))
-            of.Offset = OffsetType.Open if ot == OffsetFlagType.Open else (
-                OffsetType.CloseToday
-                if ot == OffsetFlagType.CloseToday else OffsetType.Close)
+            of.Offset = OffsetType.Open if ot == OffsetFlagType.Open else (OffsetType.CloseToday if ot == OffsetFlagType.CloseToday else OffsetType.Close)
             # of.Status = OrderStatus.Normal
             # of.StatusMsg = f.getStatusMsg()
             of.IsLocal = True
@@ -308,14 +268,11 @@ class CtpTrade(TradeAdapter):
 
         of.Status = OrderStatus.Error
         of.StatusMsg = '{0}:{1}'.format(info.ErrorID, info.ErrorMsg)
-        #_thread.start_new_thread(self.OnRtnErrOrder, (of, info))
+        # _thread.start_new_thread(self.OnRtnErrOrder, (of, info))
 
-    def __OnErrOrder(self,
-                     pInputOrder=CThostFtdcInputOrderField,
-                     pRspInfo=CThostFtdcRspInfoField):
+    def __OnErrOrder(self, pInputOrder=CThostFtdcInputOrderField, pRspInfo=CThostFtdcRspInfoField):
         """"""
-        id = '{0}|{1}|{2}'.format(self.SessionID, '0',
-                                  pInputOrder.getOrderRef())
+        id = '{0}|{1}|{2}'.format(self.SessionID, '0', pInputOrder.getOrderRef())
         of = self.DicOrderField.get(id)
 
         info = InfoField()
@@ -324,24 +281,14 @@ class CtpTrade(TradeAdapter):
 
         if of and of.IsLocal:
             of.Status = OrderStatus.Error
-            of.StatusMsg = '{0}:{1}'.format(pRspInfo.getErrorID(),
-                                            pRspInfo.getErrorMsg())
+            of.StatusMsg = '{0}:{1}'.format(pRspInfo.getErrorID(), pRspInfo.getErrorMsg())
             _thread.start_new_thread(self.OnRtnErrOrder, (of, info))
 
-    def __OnRtnInstrumentStatus(
-            self, pInstrumentStatus=CThostFtdcInstrumentStatusField):
-        self.DicInstrumentStatus[pInstrumentStatus.getInstrumentID(
-        )] = pInstrumentStatus.getInstrumentStatus()
-        _thread.start_new_thread(self.OnRtnInstrumentStatus,
-                                 (pInstrumentStatus.getInstrumentID(),
-                                  pInstrumentStatus.getInstrumentStatus()))
+    def __OnRtnInstrumentStatus(self, pInstrumentStatus=CThostFtdcInstrumentStatusField):
+        self.DicInstrumentStatus[pInstrumentStatus.getInstrumentID()] = pInstrumentStatus.getInstrumentStatus()
+        _thread.start_new_thread(self.OnRtnInstrumentStatus, (pInstrumentStatus.getInstrumentID(), pInstrumentStatus.getInstrumentStatus()))
 
-    def __OnRspSettlementInfoConfirm(
-            self,
-            pSettlementInfoConfirm=CThostFtdcSettlementInfoConfirmField,
-            pRspInfo=CThostFtdcRspInfoField,
-            nRequestID=int,
-            bIsLast=bool):
+    def __OnRspSettlementInfoConfirm(self, pSettlementInfoConfirm=CThostFtdcSettlementInfoConfirmField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         pass
 
     def ReqConnect(self, pAddress=''):
@@ -368,18 +315,12 @@ class CtpTrade(TradeAdapter):
 
         self.t.RegisterFront(pAddress)
         self.t.Init()
+        # self.t.Join()
 
     def ReqUserLogin(self, user, pwd, broker):
         self.t.ReqUserLogin(BrokerID=broker, UserID=user, Password=pwd)
 
-    def ReqOrderInsert(self,
-                       pInstrument='',
-                       pDirection=DirectType,
-                       pOffset=OffsetType,
-                       pPrice=0.0,
-                       pVolume=1,
-                       pType=OrderType.Limit,
-                       pCustom=0):
+    def ReqOrderInsert(self, pInstrument='', pDirection=DirectType, pOffset=OffsetType, pPrice=0.0, pVolume=1, pType=OrderType.Limit, pCustom=0):
         """"""
         OrderPriceType = OrderPriceTypeType.AnyPrice
         TimeCondition = TimeConditionType.IOC
@@ -419,13 +360,9 @@ class CtpTrade(TradeAdapter):
             InstrumentID=pInstrument,
             OrderRef="%06d%06d" % (self._req, pCustom % 1000000),
             UserID=self.Investor,
-            #此处ctp_enum与at_struct名称冲突
-            Direction=DirectionType.Buy
-            if pDirection == DirectType.Buy else DirectionType.Sell,
-            CombOffsetFlag=chr(
-                OffsetFlagType.Open if pOffset == OffsetType.Open else
-                (OffsetFlagType.CloseToday if pOffset == OffsetType.CloseToday
-                 else OffsetFlagType.Close)),
+            # 此处ctp_enum与at_struct名称冲突
+            Direction=DirectionType.Buy if pDirection == DirectType.Buy else DirectionType.Sell,
+            CombOffsetFlag=chr(OffsetFlagType.Open if pOffset == OffsetType.Open else (OffsetFlagType.CloseToday if pOffset == OffsetType.CloseToday else OffsetFlagType.Close)),
             CombHedgeFlag=HedgeFlagType.Speculation.__char__(),
             IsAutoSuspend=0,
             ForceCloseReason=ForceCloseReasonType.NotForceClose,
@@ -455,21 +392,11 @@ class CtpTrade(TradeAdapter):
             f.SessionID = int(pOrderId.Split('|')[0])
             f.FrontID = int(pOrderId.Split('|')[1])
             f.OrderRef = pOrderId.Split('|')[2]
-            return self.t.ReqOrderAction(
-                self.BrokerID,
-                self.Investor,
-                OrderRef=pOrderId.Split('|')[2],
-                FrontID=int(pOrderId.Split('|')[1]),
-                SessionID=int(pOrderId.Split('|')[0]),
-                InstrumentID=of.InstrumentID,
-                ActionFlag=ActionFlagType.Delete)
+            return self.t.ReqOrderAction(self.BrokerID, self.Investor, OrderRef=pOrderId.Split('|')[2], FrontID=int(pOrderId.Split('|')[1]), SessionID=int(pOrderId.Split('|')[0]), InstrumentID=of.InstrumentID, ActionFlag=ActionFlagType.Delete)
 
     def Release(self):
         self.t.RegisterSpi(None)
         self.t.Release()
-
-
-#------------------
 
     def OnFrontConnected(self):
         """"""

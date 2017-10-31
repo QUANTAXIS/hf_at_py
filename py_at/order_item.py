@@ -6,28 +6,26 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/8/16'
 """
 
-import time
-from py_at.enums import *
+from time import time
+from py_at.enums import DirectType, OffsetType
 
 
-########################################################################
 class OrderItem(object):
     """策略信号"""
 
-    #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
 
         self.Instrument = ''
         self.DateTime = time.strftime('%Y%m%d %H:%Mm:%S',
                                       time.localtime(time.time()))
-        self.Direction = Direction.Buy
-        self.Offset = Offset.Open
+        self.Direction = DirectType.Buy
+        self.Offset = OffsetType.Open
         self.Price = 0.0
         self.Volume = 0
         self.Remark = ''
         self.RelationOpenOrders = []
-        #策略相关
+        # 策略相关
         self.AvgEntryPriceShort = 0.0
         self.AvgEntryPriceLong = 0.0
         self.PositionLong = 0
@@ -53,7 +51,6 @@ class OrderItem(object):
         self.IndexExitLong = -1
         self.IndexExitShort = -1
 
-    #----------------------------------------------------------------------
     def __str__(self):
         """"""
         return '{self.Instrument}, {self.DateTime}, {self.Direction}, {self.Offset}, {self.Price}, {self.Volume}, {self.Remark}'.format(

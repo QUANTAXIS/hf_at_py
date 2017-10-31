@@ -5,14 +5,15 @@ __title__ = ''
 __author__ = 'HaiFeng'
 __mtime__ = '2016/9/23'
 """
-import sys
-import time
-import _thread
 
-from py_at.at_struct import *
-from py_at.at_tick import Tick
-from adapters.quote import QuoteAdapter
-from py_ctp.quote import *
+import _thread
+from time import time
+
+from py_at.structs import InfoField
+from py_at.tick import Tick
+from py_at.adapters.quote import QuoteAdapter
+from py_ctp.quote import Quote
+from py_ctp.structs import CThostFtdcRspUserLoginField, CThostFtdcRspInfoField, CThostFtdcDepthMarketDataField
 
 
 class CtpQuote(QuoteAdapter):
@@ -55,6 +56,7 @@ class CtpQuote(QuoteAdapter):
         info = InfoField()
         info.ErrorID = pRspInfo.getErrorID()
         info.ErrorMsg = pRspInfo.getErrorMsg()
+        self.IsLogin = True
         _thread.start_new_thread(self.OnRspUserLogin, (info, ))
 
     def __OnRtnDepthMarketData(
@@ -73,9 +75,9 @@ class CtpQuote(QuoteAdapter):
 
         day = pDepthMarketData.getTradingDay()
         str = day + ' ' + pDepthMarketData.getUpdateTime()
-        if day == None or day == ' ':
+        if day is None or day == ' ':
             str = time.strftime('%Y%m%d %H:%M:%S', time.localtime())
-        tick.UpdateTime = str  #time.strptime(str, '%Y%m%d %H:%M:%S')
+        tick.UpdateTime = str  # time.strptime(str, '%Y%m%d %H:%M:%S')
         self.DicTick[tick.Instrument] = tick
         _thread.start_new_thread(self.OnRtnTick, (tick, ))
 

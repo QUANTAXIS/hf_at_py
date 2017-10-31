@@ -6,17 +6,16 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/8/16'
 """
 
-import time
+from time import time
 import numpy as np
-import talib
+# import talib
 
-from py_at.at_struct import *
-from py_at.at_tick import Tick
-from py_at.at_order import OrderItem
-from py_at.enums import *
+# from py_at.at_struct import *
+from py_at.enums import IntervalType, DirectType, OffsetType
+from py_at.tick import Tick
+from py_at.order_item import OrderItem
 from py_at.bar import Bar
 from py_at.switch import switch
-
 
 
 class Data(object):
@@ -171,7 +170,7 @@ class Data(object):
     def on_tick(self, tick):
         self.Tick = tick
         ''' 取此tick对应的分钟时间'''
-        #bar_time = time.strptime(time.strftime("%Y-%m-%d %H:%M", tick.UpdateTime), "%Y-%m-%d %H:%M")
+        # bar_time = time.strptime(time.strftime("%Y-%m-%d %H:%M", tick.UpdateTime), "%Y-%m-%d %H:%M")
         bar_time = time.strftime("%Y%m%d %H:%M:00", tick.UpdateTime)
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:  # 新数据
             # bar_time, h, l, o, c, v, i, a)
@@ -233,7 +232,7 @@ class Data(object):
 
         bar_time = time.strptime('{0}-{1}-{2} {3}:{4}'.format(
             year, mon, day, hour, mins), '%Y-%m-%d %H:%M')
-        #time -> str
+        # time -> str
         bar_time = time.strftime('%Y-%m-%d %H:%M:%S', bar_time)
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:
             bar.D = bar_time
@@ -254,8 +253,8 @@ class Data(object):
             old_bar.V += bar.V
             self.V[-1] = old_bar.V
             self.I[-1] = old_bar.I = bar.I
-            #bar.A = tick.AveragePrice
-        #日线数据处理
+            # bar.A = tick.AveragePrice
+        # 日线数据处理
         date = '{0}-{1}-{2}'.format(year, mon, day)
         if len(self.DateD) == 0 or self.DateD[-1] != date:
             self.DateD.insert(0, date)
@@ -403,16 +402,16 @@ class Data(object):
 
     def Buy(self, price, volume, remark):
         """买开"""
-        self.__order__(Direction.Buy, Offset.Open, price, volume, remark)
+        self.__order__(DirectType.Buy, OffsetType.Open, price, volume, remark)
 
     def Sell(self, price, volume, remark):
         """买开"""
-        self.__order__(Direction.Sell, Offset.Close, price, volume, remark)
+        self.__order__(DirectType.Sell, OffsetType.Close, price, volume, remark)
 
     def SellShort(self, price, volume, remark):
         """买开"""
-        self.__order__(Direction.Sell, Offset.Open, price, volume, remark)
+        self.__order__(DirectType.Sell, OffsetType.Open, price, volume, remark)
 
     def BuyToCover(self, price, volume, remark):
         """买开"""
-        self.__order__(Direction.Buy, Offset.Close, price, volume, remark)
+        self.__order__(DirectType.Buy, OffsetType.Close, price, volume, remark)

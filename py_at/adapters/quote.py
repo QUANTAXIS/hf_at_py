@@ -6,13 +6,15 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/9/23'
 """
 
-from py_at.at_struct import *
-from py_at.at_tick import Tick
+from py_at.structs import InfoField
+from py_at.tick import Tick
+
 
 class QuoteAdapter:
     """"""
 
     def __init__(self):
+        self.IsLogin = False
         self.DicTick = {}
 
     def ReqConnect(self, pAddress=''):

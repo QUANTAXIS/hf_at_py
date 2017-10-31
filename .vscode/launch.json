@@ -1,227 +1,24 @@
 {
-	// 使用 IntelliSense 了解相关属性。 
-	// 悬停以查看现有属性的描述。
-	// 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Python",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": false,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${file}",
-			"cwd": "${workspaceRoot}",
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "ctp_test",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": false,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${workspaceRoot}/py_ctp/test_api.py",
-			"args": [
-				// "tcp://140.206.80.234:41205,tcp://140.206.80.234:41213",
-				// "2071",
-				// "99681464",
-				// "258369"
-			],
-			"cwd": "${workspaceRoot}",
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "at_test",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": false,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${workspaceRoot}/py_at/at_test.py",
-			"cwd": "${workspaceRoot}",
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "at_adapter_test",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": false,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${workspaceRoot}/py_at/py_at_adapter_test.py",
-			"cwd": "${workspaceRoot}",
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "PySpark",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": true,
-			"osx": {
-				"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
-			},
-			"windows": {
-				"pythonPath": "${env:SPARK_HOME}/bin/spark-submit.cmd"
-			},
-			"linux": {
-				"pythonPath": "${env:SPARK_HOME}/bin/spark-submit"
-			},
-			"program": "${file}",
-			"cwd": "${workspaceRoot}",
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "Integrated Terminal/Console",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": true,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${file}",
-			"cwd": "",
-			"console": "integratedTerminal",
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit"
-			]
-		},
-		{
-			"name": "External Terminal/Console",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": true,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${file}",
-			"cwd": "",
-			"console": "externalTerminal",
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit"
-			]
-		},
-		{
-			"name": "Django",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": true,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${workspaceRoot}/manage.py",
-			"cwd": "${workspaceRoot}",
-			"args": [
-				"runserver",
-				"--noreload",
-				"--nothreading"
-			],
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput",
-				"DjangoDebugging"
-			]
-		},
-		{
-			"name": "Flask",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": false,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-			"cwd": "${workspaceRoot}",
-			"env": {
-				"FLASK_APP": "${workspaceRoot}/quickstart/app.py"
-			},
-			"args": [
-				"run",
-				"--no-debugger",
-				"--no-reload"
-			],
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "Flask (old)",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": false,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${workspaceRoot}/run.py",
-			"cwd": "${workspaceRoot}",
-			"args": [],
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "Watson",
-			"type": "python",
-			"request": "launch",
-			"stopOnEntry": true,
-			"pythonPath": "${config:python.pythonPath}",
-			"program": "${workspaceRoot}/console.py",
-			"cwd": "${workspaceRoot}",
-			"args": [
-				"dev",
-				"runserver",
-				"--noreload=True"
-			],
-			"env": {},
-			"envFile": "${workspaceRoot}/.env",
-			"debugOptions": [
-				"WaitOnAbnormalExit",
-				"WaitOnNormalExit",
-				"RedirectOutput"
-			]
-		},
-		{
-			"name": "Attach (Remote Debug)",
-			"type": "python",
-			"request": "attach",
-			"localRoot": "${workspaceRoot}",
-			"remoteRoot": "${workspaceRoot}",
-			"port": 3000,
-			"secret": "my_secret",
-			"host": "localhost"
-		}
-	]
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test_at",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${workspaceRoot}/py_at/at_test.py",
+            "cwd": "${workspaceRoot}",
+            "env": {},
+            "envFile": "${workspaceRoot}/.env",
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
+        }
+    ]
 }

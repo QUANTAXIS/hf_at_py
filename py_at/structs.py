@@ -6,6 +6,21 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/9/21'
 """
 
+from py_at.enums import DirectType, OffsetType, OrderStatus
+
+
+class ReqPackage:
+    """数据请求格式包"""
+
+    def __init__(self):
+        """Constructor"""
+
+        self.Type = 0
+        self.Instrument = ''
+        self.Begin = ''
+        self.End = ''
+
+
 class InfoField:
     """"""
 
@@ -55,10 +70,9 @@ class OrderField:
         """"""
         return '{self.OrderID}, {self.InstrumentID}, {self.Direction}, {self.Offset}, {self.LimitPrice}, {self.AvgPrice}, {self.InsertTime}, {self.TradeTime}, {self.TradeVolume}, {self.Volume}, {self.VolumeLeft}, {self.Status}, {self.StatusMsg}, {self.IsLocal}, {self.Custom}, {self.SysID}'.format(
             self=self)
-        #return '''{{"OrderID": "{self.OrderID}", "InstrumentID": "{self.InstrumentID}", "Direction": "{self.Direction.name}", "Offset": "{self.Offset.name}","LimitPrice": {self.LimitPrice}, "AvgPrice": {self.AvgPrice}, "InsertTime": "{self.InsertTime}", "TradeTime": "{self.TradeTime}","TradeVolume": {self.TradeVolume}, "Volume": {self.Volume}, "VolumeLeft": {self.VolumeLeft}, "Status": "{self.Status.name}","StatusMsg": "{self.StatusMsg}", "IsLocal": {self.IsLocal}, "Custom": {self.Custom}, "SysID": "{self.SysID}"}}'''.format(self=self)
 
     @property
-    def __dict__(self):  #如何控制dict的字段次序?:交由客户端处理
+    def __dict__(self):  # 如何控制dict的字段次序?:交由客户端处理
         return {
             'OrderID': self.OrderID,
             'InstrumentID': self.InstrumentID,
@@ -218,7 +232,6 @@ class PositionField:
         return (
             '{self.InstrumentID}, {self.Direction}, {self.Price}, {self.Position}, {self.TdPosition}, {self.YdPosition}, {self.CloseProfit}, {self.PositionProfit}, {self.Commission}, {self.Margin}'
         ).format(self=self)
-        #return '{{"InstrumentID": "{self.InstrumentID}", "Direction": "{self.Direction.name}", "Price": {self.Price}, "Position": {self.Position},"TdPosition": {self.TdPosition}, "YdPosition": {self.YdPosition}, "CloseProfit": {self.CloseProfit},"PositionProfit": {self.PositionProfit}, "Commission": {self.Commission}, "Margin": {self.Margin}}}'.format(self=self)
 
     @property
     def __dict__(self):

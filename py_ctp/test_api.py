@@ -1,4 +1,4 @@
-# !/usr/bin/env python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 """
 __title__ = ''
@@ -11,10 +11,11 @@ import os
 import _thread
 from time import sleep
 
-#sys.path.append('..')  #调用父目录下的模块
+# sys.path.append('..')  #调用父目录下的模块
 sys.path.append(os.path.join(sys.path[0], '..'))  # 调用父目录下的模块
-from py_ctp.ctp_enum import *
-from py_ctp.ctp_struct import *
+
+from py_ctp.enums import OrderPriceTypeType, DirectionType, OffsetFlagType, HedgeFlagType, TimeConditionType, VolumeConditionType, ContingentConditionType, ForceCloseReasonType, OrderStatusType, ActionFlagType
+from py_ctp.structs import CThostFtdcMarketDataField, CThostFtdcRspAuthenticateField, CThostFtdcRspInfoField, CThostFtdcSettlementInfoConfirmField, CThostFtdcInstrumentStatusField, CThostFtdcInputOrderField, CThostFtdcOrderField
 from py_ctp.trade import Trade
 from py_ctp.quote import Quote
 
@@ -128,7 +129,8 @@ class Test:
         _thread.start_new_thread(self.StartQuote, ())
 
     def StartQuote(self):
-        api = self.q.CreateApi()
+        # api = self.q.CreateApi()
+        self.q.CreateApi()
         spi = self.q.CreateSpi()
         self.q.RegisterSpi(spi)
 
@@ -179,9 +181,14 @@ class Test:
                 SessionID=pOrder.getSessionID(),
                 ActionFlag=ActionFlagType.Delete)
 
-    def Run(self, front='tcp://180.168.146.187:10000,tcp://180.168.146.187:10010', broker='9999', investor='008105', pwd='1'):
+    def Run(self,
+            front='tcp://180.168.146.187:10000,tcp://180.168.146.187:10010',
+            broker='9999',
+            investor='008105',
+            pwd='1'):
         # CreateApi时会用到log目录,需要在程序目录下创建**而非dll下**
-        api = self.t.CreateApi()
+        # api = self.t.CreateApi()
+        self.t.CreateApi()
         spi = self.t.CreateSpi()
         self.t.RegisterSpi(spi)
 
@@ -210,7 +217,7 @@ class Test:
 
 if __name__ == '__main__':
     t = Test()
-    if len(sys.argv)==1:
+    if len(sys.argv) == 1:
         t.Run()
     else:
         t.Run(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])

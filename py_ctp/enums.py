@@ -6,7 +6,6 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/9/13'
 """
 
-import ctypes
 from enum import Enum
 
 
