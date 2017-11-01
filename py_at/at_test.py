@@ -31,9 +31,8 @@ from py_at.tick import Tick
 class at_test:
     """"""
 
-    # ----------------------------------------------------------------------
     def __init__(self):
-        """Constructor"""
+        """初始化 运行的目录下需要创建log目录"""
 
         self.front_trade = ''
         self.front_quote = ''
@@ -47,16 +46,11 @@ class at_test:
 
         self.stra_instances = []
 
-        # cur_path = os.getcwd()
-        # 目录到接口下
-        # os.chdir(os.path.join(os.getcwd(), '../py_ctp/'))
         self.q = CtpQuote()
         self.t = CtpTrade()
-        # os.chdir(cur_path)
 
-    # -------此处调用ctp接口即可实现实际下单---------------------------------------------------------------
     def on_order(self, stra, order):
-        """strategy's order"""
+        """此处调用ctp接口即可实现实际下单"""
         p = Data()
         p = stra
         _order = OrderItem()
@@ -86,7 +80,6 @@ class at_test:
             else:
                 self.t.ReqOrderInsert(stra.Instrument, _order.Direction, OffsetType.Open, _order.Price, _order.Volume, OrderType.Limit, 100)
 
-    # ----------------------------------------------------------------------
     def load_strategy(self):
         """加载../strategy目录下的策略"""
         """通过文件名取到对应的继承Data的类并实例"""
@@ -112,7 +105,6 @@ class at_test:
                 print("# obj:{0}", obj)
                 self.stra_instances.append(obj)
 
-    # ----------------------------------------------------------------------
     def read_from_mq(self, stra):
         """netMQ"""
         _stra = Data()
@@ -146,7 +138,6 @@ class at_test:
 
         return bars
 
-    # ----------------------------------------------------------------------
     def read_data_test(self):
         """取历史和实时K线数据,并执行策略回测"""
         stra = Data()
@@ -167,13 +158,11 @@ class at_test:
 
         self.real = True
 
-    # ----------------------------------------------------------------------
     def OnFrontConnected(self):
         """"""
         print("t:connected by client")
         self.t.ReqUserLogin(self.investor, self.pwd, self.broker)
 
-    # ----------------------------------------------------------------------
     def relogin(self):
         """"""
         self.t.ReqRelease()
@@ -181,7 +170,6 @@ class at_test:
         sleep(60)
         self.t.ReqConnect(self.front_trade)
 
-    # ----------------------------------------------------------------------
     def OnRspUserLogin(self, info=InfoField):
         """"""
         print(info.ErrorID)
@@ -190,12 +178,11 @@ class at_test:
         if info.ErrorID == 0:
             self.TradingDay = self.t.TradingDay
             if not self.q.IsLogin:
-                self.q.ReqConnect(self.front_quote)
                 self.q.OnFrontConnected = self.q_OnFrontConnected
                 self.q.OnRspUserLogin = self.q_OnRspUserLogin
-                self.q.OnRtnDepthMarketData = self.q_Tick
+                self.q.OnRtnTick = self.q_Tick
+                self.q.ReqConnect(self.front_quote)
 
-    # ----------------------------------------------------------------------
     def OnOrder(self, order=OrderField):
         """"""
         print(order)
@@ -204,40 +191,35 @@ class at_test:
         """"""
         print(order)
 
-    # ----------------------------------------------------------------------
     def OnTrade(self, trade=TradeField):
         """"""
         print(trade)
 
-    # ----------------------------------------------------------------------
     def OnRtnErrOrder(self, order=OrderField, info=InfoField):
         """"""
         print(order)
 
-    # ----------------------------------------------------------------------
     def q_OnFrontConnected(self):
         """"""
         print("q:connected by client")
         self.q.ReqUserLogin(self.broker, self.investor, self.pwd)
 
-    # ----------------------------------------------------------------------
     def q_OnRspUserLogin(self, info=InfoField):
         """"""
         print(info)
+        self.q.ReqSubscribeMarketData('rb1801')
         for stra in self.stra_instances:
-            self.q.SubscribeMarketData(stra.Instrument)
+            self.q.ReqSubscribeMarketData(stra.Instrument)
 
-    # ----------------------------------------------------------------------
     def q_Tick(self, tick=Tick):
         """"""
-
+        print(tick)
         for stra in self.stra_instances:
             if stra.Instrument == tick.Instrument:
                 stra.on_tick(tick)
                 # print(tick)
 
-    # ----------------------------------------------------------------------
-    def CTPRun(self, front_trade='tcp://180.168.146.187:10000', front_quote='tcp://180.168.146.187:10010', broker='9999', investor='008105', pwd='1'):
+    def CTPRun(self, front_trade='tcp://180.168.146.187:10000', front_quote='tcp://180.168.146.187:10010', broker='9999', investor='008109', pwd='1'):
         """"""
         self.t.OnFrontConnected = self.OnFrontConnected
         self.t.OnRspUserLogin = self.OnRspUserLogin

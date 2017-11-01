@@ -9,6 +9,7 @@ __mtime__ = '2016/9/13'
 
 import os
 import sys
+import inspect
 import platform
 from ctypes import CDLL, cdll, c_void_p, c_char_p, c_int32, CFUNCTYPE, POINTER, c_bool, byref
 from py_ctp.enums import LoginModeType
@@ -24,9 +25,9 @@ class Quote:
     def __init__(self):
 
         # make log dir for api log
-        logdir = os.path.join(sys.path[0], "log")
-        if not os.path.exists(logdir):
-            os.mkdir(logdir)
+        # logdir = os.path.join(sys.path[0], "log")
+        # if not os.path.exists(logdir):
+        #     os.mkdir(logdir)
 
         dlldir = os.path.join(
             os.path.split(os.path.realpath(__file__))[0], "dll")

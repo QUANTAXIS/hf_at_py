@@ -6,7 +6,7 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/8/16'
 """
 
-from time import time
+import time
 from py_at.enums import DirectType, OffsetType
 
 

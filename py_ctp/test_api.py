@@ -21,6 +21,7 @@ from py_ctp.quote import Quote
 
 
 class Test:
+
     def __init__(self):
         self.Session = ''
         self.q = Quote()
@@ -28,7 +29,6 @@ class Test:
         self.req = 0
         self.ordered = False
         self.needAuth = False
-        self.RelogEnable = False
         self.frontAddr = ''
         self.broker = ''
         self.investor = ''
@@ -36,14 +36,13 @@ class Test:
 
     def q_OnFrontConnected(self):
         print('connected')
-        self.q.ReqUserLogin(
-            BrokerID=self.broker, UserID=self.investor, Password=self.pwd)
+        self.q.ReqUserLogin(BrokerID=self.broker, UserID=self.investor, Password=self.pwd)
 
     def q_OnRspUserLogin(self, rsp, info, req, last):
         print(info)
 
         # insts = create_string_buffer(b'cu', 5)
-        self.q.SubscribeMarketData('rb1705')
+        self.q.SubscribeMarketData('rb1805')
 
     def q_OnTick(self, tick):
         f = CThostFtdcMarketDataField()
@@ -51,7 +50,7 @@ class Test:
         # print(tick)
 
         if not self.ordered:
-            _thread.start_new_thread(self.Order, (f, ))
+            _thread.start_new_thread(self.Order, (f,))
             self.ordered = True
 
     def Order(self, f):
@@ -81,31 +80,15 @@ class Test:
             UserForceClose=0)
 
     def OnFrontConnected(self):
-        if not self.RelogEnable:
-            return
         print('connected')
         if self.needAuth:
-            self.t.ReqAuthenticate(self.broker, self.investor, '@haifeng',
-                                   '8MTL59FK1QGLKQW2')
+            self.t.ReqAuthenticate(self.broker, self.investor, '@haifeng', '8MTL59FK1QGLKQW2')
         else:
-            self.t.ReqUserLogin(
-                BrokerID=self.broker,
-                UserID=self.investor,
-                Password=self.pwd,
-                UserProductInfo='@haifeng')
+            self.t.ReqUserLogin(BrokerID=self.broker, UserID=self.investor, Password=self.pwd, UserProductInfo='@haifeng')
 
-    def OnRspAuthenticate(self,
-                          pRspAuthenticateField=CThostFtdcRspAuthenticateField,
-                          pRspInfo=CThostFtdcRspInfoField,
-                          nRequestID=int,
-                          bIsLast=bool):
-        print('auth：{0}:{1}'.format(pRspInfo.getErrorID(),
-                                    pRspInfo.getErrorMsg()))
-        self.t.ReqUserLogin(
-            BrokerID=self.broker,
-            UserID=self.investor,
-            Password=self.pwd,
-            UserProductInfo='@haifeng')
+    def OnRspAuthenticate(self, pRspAuthenticateField=CThostFtdcRspAuthenticateField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
+        print('auth：{0}:{1}'.format(pRspInfo.getErrorID(), pRspInfo.getErrorMsg()))
+        self.t.ReqUserLogin(BrokerID=self.broker, UserID=self.investor, Password=self.pwd, UserProductInfo='@haifeng')
 
     def OnRspUserLogin(self, rsp, info, req, last):
         i = CThostFtdcRspInfoField()
@@ -114,22 +97,14 @@ class Test:
 
         if i.getErrorID() == 0:
             self.Session = rsp.getSessionID()
-            self.t.ReqSettlementInfoConfirm(
-                BrokerID=self.broker, InvestorID=self.investor)
-        else:
-            self.RelogEnable = False
+            self.t.ReqSettlementInfoConfirm(BrokerID=self.broker, InvestorID=self.investor)
 
-    def OnRspSettlementInfoConfirm(
-            self,
-            pSettlementInfoConfirm=CThostFtdcSettlementInfoConfirmField,
-            pRspInfo=CThostFtdcRspInfoField,
-            nRequestID=int,
-            bIsLast=bool):
-        # print(pSettlementInfoConfirm)
+    def OnRspSettlementInfoConfirm(self, pSettlementInfoConfirm=CThostFtdcSettlementInfoConfirmField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
+        print(pSettlementInfoConfirm)
         _thread.start_new_thread(self.StartQuote, ())
+        _thread.start_new_thread(self.Qry, ())
 
     def StartQuote(self):
-        # api = self.q.CreateApi()
         self.q.CreateApi()
         spi = self.q.CreateSpi()
         self.q.RegisterSpi(spi)
@@ -142,7 +117,7 @@ class Test:
 
         self.q.RegisterFront(self.frontAddr.split(',')[1])
         self.q.Init()
-        # self.q.Join()
+        self.q.Join()
 
     def Qry(self):
         sleep(1.1)
@@ -154,52 +129,37 @@ class Test:
             self.t.ReqQryInvestorPosition(self.broker, self.investor)
             return
 
-    def OnRtnInstrumentStatus(
-            self, pInstrumentStatus=CThostFtdcInstrumentStatusField):
+    def OnRtnInstrumentStatus(self, pInstrumentStatus=CThostFtdcInstrumentStatusField):
         pass
 
-    def OnRspOrderInsert(self,
-                         pInputOrder=CThostFtdcInputOrderField,
-                         pRspInfo=CThostFtdcRspInfoField,
-                         nRequestID=int,
-                         bIsLast=bool):
+    def OnRspOrderInsert(self, pInputOrder=CThostFtdcInputOrderField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         print(pRspInfo)
         print(pInputOrder)
         print(pRspInfo.getErrorMsg())
 
     def OnRtnOrder(self, pOrder=CThostFtdcOrderField):
         # print(pOrder)
-        if pOrder.getSessionID() == self.Session and pOrder.getOrderStatus(
-        ) == OrderStatusType.NoTradeQueueing:
+        if pOrder.getSessionID() == self.Session and pOrder.getOrderStatus() == OrderStatusType.NoTradeQueueing:
             print("撤单")
-            self.t.ReqOrderAction(
-                self.broker,
-                self.investor,
-                InstrumentID=pOrder.getInstrumentID(),
-                OrderRef=pOrder.getOrderRef(),
-                FrontID=pOrder.getFrontID(),
-                SessionID=pOrder.getSessionID(),
-                ActionFlag=ActionFlagType.Delete)
+            self.t.ReqOrderAction(self.broker, self.investor, InstrumentID=pOrder.getInstrumentID(), OrderRef=pOrder.getOrderRef(), FrontID=pOrder.getFrontID(), SessionID=pOrder.getSessionID(), ActionFlag=ActionFlagType.Delete)
 
-    def Run(self,
-            front='tcp://180.168.146.187:10000,tcp://180.168.146.187:10010',
-            broker='9999',
-            investor='008105',
-            pwd='1'):
+    def OnRspInstrument(self, instrument, last, rspinfo, nreq):
+        pass
+
+    def Run(self, front='tcp://180.168.146.187:10000,tcp://180.168.146.187:10010', broker='9999', investor='008105', pwd='1'):
         # CreateApi时会用到log目录,需要在程序目录下创建**而非dll下**
-        # api = self.t.CreateApi()
         self.t.CreateApi()
         spi = self.t.CreateSpi()
         self.t.RegisterSpi(spi)
 
         self.t.OnFrontConnected = self.OnFrontConnected
         self.t.OnRspUserLogin = self.OnRspUserLogin
+        self.t.OnRspQryInstrument = self.OnRspInstrument
         self.t.OnRspSettlementInfoConfirm = self.OnRspSettlementInfoConfirm
         self.t.OnRspAuthenticate = self.OnRspAuthenticate
         self.t.OnRtnInstrumentStatus = self.OnRtnInstrumentStatus
         self.t.OnRspOrderInsert = self.OnRspOrderInsert
         self.t.OnRtnOrder = self.OnRtnOrder
-        # _thread.start_new_thread(self.Qry, ())
 
         self.t.RegCB()
 
@@ -209,10 +169,10 @@ class Test:
         self.pwd = pwd
 
         self.t.RegisterFront(self.frontAddr.split(',')[0])
-        self.t.SubscribePrivateTopic(nResumeType=2)  # quick
-        self.t.SubscribePrivateTopic(nResumeType=2)
+        # self.t.SubscribePrivateTopic(nResumeType=2)  # quick
+        # self.t.SubscribePrivateTopic(nResumeType=2)
         self.t.Init()
-        self.t.Join()
+        # self.t.Join()
 
 
 if __name__ == '__main__':
