@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
   Author:  HaiFeng --<galaxy>
-  Purpose: 
+  Purpose:
   Created: 2016/8/2
 """
 

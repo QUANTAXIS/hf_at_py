@@ -213,7 +213,7 @@ class at_test:
 
     def q_Tick(self, tick=Tick):
         """"""
-        print(tick)
+        # print(tick)
         for stra in self.stra_instances:
             if stra.Instrument == tick.Instrument:
                 stra.on_tick(tick)
@@ -238,8 +238,8 @@ class at_test:
 
 if __name__ == '__main__':
     p = at_test()
-    # p.load_strategy()
-    # p.read_data_test()
+    p.load_strategy()
+    p.read_data_test()
     if len(sys.argv) == 1:
         p.CTPRun()
     else:

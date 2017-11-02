@@ -171,7 +171,7 @@ class Data(object):
         self.Tick = tick
         ''' 取此tick对应的分钟时间'''
         # bar_time = time.strptime(time.strftime("%Y-%m-%d %H:%M", tick.UpdateTime), "%Y-%m-%d %H:%M")
-        bar_time = time.strftime("%Y%m%d %H:%M:00", tick.UpdateTime)
+        bar_time = tick.UpdateTime[:-2] + '00'  # time.strftime("%Y%m%d %H:%M:00", time.strptime(tick.UpdateTime, "%Y%m%d %H:%M:%S"))
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:  # 新数据
             # bar_time, h, l, o, c, v, i, a)
             bar = Bar(bar_time, tick.LastPrice, tick.LastPrice, tick.LastPrice,

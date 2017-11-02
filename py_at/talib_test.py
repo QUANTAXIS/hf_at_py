@@ -9,12 +9,7 @@ __mtime__ = '2016/9/26'
 import numpy as np
 from talib import abstract
 
-inputs = {
-    'open': np.random.rand(20),
-    'high': np.random.rand(20),
-    'low': np.random.rand(20),
-    'close': np.random.rand(20)
-}
+inputs = {'open': np.random.rand(20), 'high': np.random.rand(20), 'low': np.random.rand(20), 'close': np.random.rand(20)}
 
 print(abstract.SMA(inputs, 5, price='close'))
 
