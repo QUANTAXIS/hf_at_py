@@ -34,7 +34,9 @@ class at_test:
     def __init__(self):
         """初始化 运行的目录下需要创建log目录"""
 
+        """交易前置"""
         self.front_trade = ''
+        # 行情前置
         self.front_quote = ''
         self.investor = ''
         self.pwd = ''
@@ -165,7 +167,7 @@ class at_test:
 
     def relogin(self):
         """"""
-        self.t.ReqRelease()
+        self.t.Release()
         print('sleep 60 seconds to wait try connect next time')
         sleep(60)
         self.t.ReqConnect(self.front_trade)
@@ -217,7 +219,7 @@ class at_test:
         for stra in self.stra_instances:
             if stra.Instrument == tick.Instrument:
                 stra.on_tick(tick)
-                # print(tick)
+                print(tick)
 
     def CTPRun(self, front_trade='tcp://180.168.146.187:10000', front_quote='tcp://180.168.146.187:10010', broker='9999', investor='008109', pwd='1'):
         """"""

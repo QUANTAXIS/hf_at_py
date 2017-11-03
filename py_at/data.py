@@ -174,8 +174,7 @@ class Data(object):
         bar_time = tick.UpdateTime[:-2] + '00'  # time.strftime("%Y%m%d %H:%M:00", time.strptime(tick.UpdateTime, "%Y%m%d %H:%M:%S"))
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:  # 新数据
             # bar_time, h, l, o, c, v, i, a)
-            bar = Bar(bar_time, tick.LastPrice, tick.LastPrice, tick.LastPrice,
-                      tick.LastPrice, tick.Volume, tick.OpenInterest)
+            bar = Bar(bar_time, tick.LastPrice, tick.LastPrice, tick.LastPrice, tick.LastPrice, tick.Volume, tick.OpenInterest)
             bar._pre_volume = tick.Volume
 
             self.__new_min_bar__(bar)  # 新K线数据插入
@@ -230,8 +229,7 @@ class Data(object):
                 day = time.strftime('%W', bar_time)
                 break
 
-        bar_time = time.strptime('{0}-{1}-{2} {3}:{4}'.format(
-            year, mon, day, hour, mins), '%Y-%m-%d %H:%M')
+        bar_time = time.strptime('{0}-{1}-{2} {3}:{4}'.format(year, mon, day, hour, mins), '%Y-%m-%d %H:%M')
         # time -> str
         bar_time = time.strftime('%Y-%m-%d %H:%M:%S', bar_time)
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:
@@ -297,10 +295,7 @@ class Data(object):
     def __order__(self, direction, offset, price, volume, remark):
         """策略执行信号"""
 
-        if self.SingleOrderOneBar and (self.LastEntryDateLong == self.D[-1]
-                                       or self.LastEntryDateShort == self.D[-1]
-                                       or self.ExitDateLong == self.D[-1]
-                                       or self.ExitDateShort == self.D[-1]):
+        if self.SingleOrderOneBar and (self.LastEntryDateLong == self.D[-1] or self.LastEntryDateShort == self.D[-1] or self.ExitDateLong == self.D[-1] or self.ExitDateShort == self.D[-1]):
             return
         order = OrderItem()
         order.Instrument = self.Instrument
@@ -341,10 +336,7 @@ class Data(object):
         for case in switch(diroff):
             if case('Buy-Open'):
                 order.PositionLong += order.Volume
-                order.AvgEntryPriceLong = (
-                    self._lastOrder.PositionLong * self._lastOrder.
-                    AvgEntryPriceLong + order.Volume * order.Price) / (
-                        self._lastOrder.Volume + order.Volume)
+                order.AvgEntryPriceLong = (self._lastOrder.PositionLong * self._lastOrder.AvgEntryPriceLong + order.Volume * order.Price) / (self._lastOrder.Volume + order.Volume)
                 if self._lastOrder.PositionLong == 0:
                     order.IndexEntryLong = len(self.Bars) - 1
                     order.EntryDateLong = self.D[-1]  # str '20160630 21:25:00'
@@ -355,8 +347,7 @@ class Data(object):
                 break
 
             if case('Buy-Close'):
-                c_lots = min(self._lastOrder.PositionShort,
-                             order.Volume)  # 能够平掉的数量
+                c_lots = min(self._lastOrder.PositionShort, order.Volume)  # 能够平掉的数量
                 if c_lots <= 0:  # 无仓可平
                     print('平仓量>持仓量')
                     break
@@ -369,14 +360,10 @@ class Data(object):
 
             if case('Sell-Open'):
                 order.PositionShort += order.Volume
-                order.AvgEntryPriceShort = (
-                    self._lastOrder.PositionShort * self._lastOrder.
-                    AvgEntryPriceShort + order.Volume * order.Price) / (
-                        self._lastOrder.Volume + order.Volume)
+                order.AvgEntryPriceShort = (self._lastOrder.PositionShort * self._lastOrder.AvgEntryPriceShort + order.Volume * order.Price) / (self._lastOrder.Volume + order.Volume)
                 if self._lastOrder.PositionShort == 0:
                     order.IndexEntryShort = len(self.Bars) - 1
-                    order.EntryDateShort = self.D[
-                        -1]  # time or double or str ???
+                    order.EntryDateShort = self.D[-1]  # time or double or str ???
                     order.EntryPriceShort = order.Price
                 order.IndexLastEntryShort = len(self.Bars) - 1
                 order.LastEntryPriceShort = order.Price
@@ -384,8 +371,7 @@ class Data(object):
                 break
 
             if case('Sell-Close'):
-                c_lots = min(self._lastOrder.PositionLong,
-                             order.Volume)  # 能够平掉的数量
+                c_lots = min(self._lastOrder.PositionLong, order.Volume)  # 能够平掉的数量
                 if c_lots <= 0:  # 无仓可平
                     print('平仓量>持仓量')
                     break

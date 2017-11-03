@@ -6,6 +6,7 @@ __author__ = 'HaiFeng'
 __mtime__ = '2016/9/21'
 """
 
+
 class Tick:
     """Tick数据"""
 
@@ -24,7 +25,6 @@ class Tick:
         self.OpenInterest = 1.0
         self.AveragePrice = 0.0
 
-    # ----------------------------------------------------------------------
     def __str__(self):
         """"""
         return '{self.Instrument}, {self.LastPrice}, {self.AskPrice}, {self.AskVolume}, {self.BidPrice}, {self.BidVolume}, {self.UpdateTime}, {self.Volume}, {self.OpenInterest}, {self.AveragePrice}'.format(
