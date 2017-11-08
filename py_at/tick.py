@@ -8,12 +8,13 @@ __mtime__ = '2016/9/21'
 
 
 class Tick:
-    """Tick数据"""
+    """分笔数据"""
 
     # ----------------------------------------------------------------------
     def __init__(self):
-        """Constructor"""
+        """初始化"""
 
+        '''合约'''
         self.Instrument = ''
         self.LastPrice = 0.0
         self.AskPrice = 0.0

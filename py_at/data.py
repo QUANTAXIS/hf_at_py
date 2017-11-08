@@ -8,9 +8,7 @@ __mtime__ = '2016/8/16'
 
 import time
 import numpy as np
-# import talib
 
-# from py_at.at_struct import *
 from py_at.enums import IntervalType, DirectType, OffsetType
 from py_at.tick import Tick
 from py_at.order_item import OrderItem
@@ -20,20 +18,65 @@ from py_at.switch import switch
 
 class Data(object):
     '''数据类, 策略继承此类'''
+    '''K线序列'''
+    Bars = []
+    '''日线-日期'''
+    DateD = []
+    '''日线-开'''
+    OpenD = []
+    '''日线-高'''
+    HighD = []
+    '''日线-低'''
+    LowD = []
+    '''日线-收'''
+    CloseD = []
+    '''合约'''
+    Instrument = ''
+    '''周期'''
+    Interval = 1
+    '''周期类型'''
+    IntervalType = IntervalType.Minute
+    '''起始测试时间
+    格式:yyyyMMdd[%Y%m%d]
+    默认:20160101'''
+    BeginDate = '20160101'
+    '''结束测试时间
+    格式:yyyyMMdd[%Y%m%d]
+    默认:本地时间'''
+    EndDate = time.strftime("%Y%m%d", time.localtime())  # 默认值取当日
+    '''分笔数据
+    Tick.Instrument用来判断是否有实盘数据'''
+    Tick = Tick()
+    '''参数'''
+    Params = {}
+    '''买卖信号'''
+    Orders = []
+    '''指标字典
+    策略使用的指标保存在此字典中
+    以便管理程序显示和处理'''
+    IndexDict = {}
+    '''策略标识'''
+    ID = None
+    '''允许委托下单'''
+    EnableOrder = False
+    '''每bar只执行一次交易'''
+    SingleOrderOneBar = True
+
+    # 序列变量
+    inputs = {
+        'date': np.array([]),
+        'open': np.array([]),
+        'high': np.array([]),
+        'low': np.array([]),
+        'close': np.array([]),
+        'volume': np.array([]),
+        'openinterest': np.array([]),
+    }
+
+    _lastOrder = OrderItem()
 
     def __init__(self):
         '''初始所有变量'''
-        # 序列变量
-        self.inputs = {
-            'date': np.array([]),
-            'open': np.array([]),
-            'high': np.array([]),
-            'low': np.array([]),
-            'close': np.array([]),
-            'volume': np.array([]),
-            'openinterest': np.array([]),
-        }
-        self.Bars = []
         self.D = self.inputs['date']
         self.H = self.inputs['high']
         self.L = self.inputs['low']
@@ -41,34 +84,6 @@ class Data(object):
         self.C = self.inputs['close']
         self.V = self.inputs['volume']
         self.I = self.inputs['openinterest']
-
-        self.DateD = []
-        self.OpenD = []
-        self.HighD = []
-        self.LowD = []
-        self.CloseD = []
-
-        self.Instrument = ''
-        self.Interval = 1
-        self.IntervalType = IntervalType.Minute
-        self.BeginDate = '20160101'  # 注意日期格式
-        self.EndDate = time.strftime("%Y%m%d", time.localtime())  # 默认值取当日
-
-        self.Tick = Tick()
-        self.Params = {}
-        self.IndexDict = {}
-        self.Orders = []
-
-        self._lastOrder = OrderItem()
-
-        self.ID = None
-        '''策略标识'''
-
-        self.EnableOrder = False
-        '''允许委托下单'''
-
-        self.SingleOrderOneBar = True
-        '''每bar只执行一次交易'''
 
     # 当前策略相关
     @property
@@ -174,7 +189,8 @@ class Data(object):
         bar_time = tick.UpdateTime[:-2] + '00'  # time.strftime("%Y%m%d %H:%M:00", time.strptime(tick.UpdateTime, "%Y%m%d %H:%M:%S"))
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:  # 新数据
             # bar_time, h, l, o, c, v, i, a)
-            bar = Bar(bar_time, tick.LastPrice, tick.LastPrice, tick.LastPrice, tick.LastPrice, tick.Volume, tick.OpenInterest)
+            bar = Bar(bar_time, tick.LastPrice, tick.LastPrice, tick.LastPrice,
+                      tick.LastPrice, tick.Volume, tick.OpenInterest)
             bar._pre_volume = tick.Volume
 
             self.__new_min_bar__(bar)  # 新K线数据插入
@@ -229,7 +245,8 @@ class Data(object):
                 day = time.strftime('%W', bar_time)
                 break
 
-        bar_time = time.strptime('{0}-{1}-{2} {3}:{4}'.format(year, mon, day, hour, mins), '%Y-%m-%d %H:%M')
+        bar_time = time.strptime('{0}-{1}-{2} {3}:{4}'.format(
+            year, mon, day, hour, mins), '%Y-%m-%d %H:%M')
         # time -> str
         bar_time = time.strftime('%Y-%m-%d %H:%M:%S', bar_time)
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:
@@ -295,7 +312,10 @@ class Data(object):
     def __order__(self, direction, offset, price, volume, remark):
         """策略执行信号"""
 
-        if self.SingleOrderOneBar and (self.LastEntryDateLong == self.D[-1] or self.LastEntryDateShort == self.D[-1] or self.ExitDateLong == self.D[-1] or self.ExitDateShort == self.D[-1]):
+        if self.SingleOrderOneBar and (self.LastEntryDateLong == self.D[-1]
+                                       or self.LastEntryDateShort == self.D[-1]
+                                       or self.ExitDateLong == self.D[-1]
+                                       or self.ExitDateShort == self.D[-1]):
             return
         order = OrderItem()
         order.Instrument = self.Instrument
@@ -336,7 +356,10 @@ class Data(object):
         for case in switch(diroff):
             if case('Buy-Open'):
                 order.PositionLong += order.Volume
-                order.AvgEntryPriceLong = (self._lastOrder.PositionLong * self._lastOrder.AvgEntryPriceLong + order.Volume * order.Price) / (self._lastOrder.Volume + order.Volume)
+                order.AvgEntryPriceLong = (
+                    self._lastOrder.PositionLong * self._lastOrder.
+                    AvgEntryPriceLong + order.Volume * order.Price) / (
+                        self._lastOrder.Volume + order.Volume)
                 if self._lastOrder.PositionLong == 0:
                     order.IndexEntryLong = len(self.Bars) - 1
                     order.EntryDateLong = self.D[-1]  # str '20160630 21:25:00'
@@ -347,7 +370,8 @@ class Data(object):
                 break
 
             if case('Buy-Close'):
-                c_lots = min(self._lastOrder.PositionShort, order.Volume)  # 能够平掉的数量
+                c_lots = min(self._lastOrder.PositionShort,
+                             order.Volume)  # 能够平掉的数量
                 if c_lots <= 0:  # 无仓可平
                     print('平仓量>持仓量')
                     break
@@ -360,10 +384,14 @@ class Data(object):
 
             if case('Sell-Open'):
                 order.PositionShort += order.Volume
-                order.AvgEntryPriceShort = (self._lastOrder.PositionShort * self._lastOrder.AvgEntryPriceShort + order.Volume * order.Price) / (self._lastOrder.Volume + order.Volume)
+                order.AvgEntryPriceShort = (
+                    self._lastOrder.PositionShort * self._lastOrder.
+                    AvgEntryPriceShort + order.Volume * order.Price) / (
+                        self._lastOrder.Volume + order.Volume)
                 if self._lastOrder.PositionShort == 0:
                     order.IndexEntryShort = len(self.Bars) - 1
-                    order.EntryDateShort = self.D[-1]  # time or double or str ???
+                    order.EntryDateShort = self.D[
+                        -1]  # time or double or str ???
                     order.EntryPriceShort = order.Price
                 order.IndexLastEntryShort = len(self.Bars) - 1
                 order.LastEntryPriceShort = order.Price
@@ -371,7 +399,8 @@ class Data(object):
                 break
 
             if case('Sell-Close'):
-                c_lots = min(self._lastOrder.PositionLong, order.Volume)  # 能够平掉的数量
+                c_lots = min(self._lastOrder.PositionLong,
+                             order.Volume)  # 能够平掉的数量
                 if c_lots <= 0:  # 无仓可平
                     print('平仓量>持仓量')
                     break
@@ -392,7 +421,8 @@ class Data(object):
 
     def Sell(self, price, volume, remark):
         """买开"""
-        self.__order__(DirectType.Sell, OffsetType.Close, price, volume, remark)
+        self.__order__(DirectType.Sell, OffsetType.Close, price, volume,
+                       remark)
 
     def SellShort(self, price, volume, remark):
         """买开"""

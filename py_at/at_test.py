@@ -15,9 +15,8 @@ import gzip  # 解压
 import json
 from time import sleep  # 可能前面的import模块对time有影响,故放在最后
 
-# sys.path.append('..')  # 调用父目录下的模块
 sys.path.append(os.path.join(sys.path[0], '..'))  # 调用父目录下的模块
-# from py_at.at_struct import *
+
 from py_at.bar import Bar
 from py_at.data import Data
 from py_at.order_item import OrderItem
@@ -42,25 +41,21 @@ class at_test:
         self.pwd = ''
         self.broker = ''
         self.TradingDay = ''
-        self.log = open('orders.csv', 'w')
-        self.log.write('')  # 清空内容
-        self.real = False  # 控制实际下单
+        # self.log = open('orders.csv', 'w')
+        # self.log.write('')  # 清空内容
 
         self.stra_instances = []
 
         self.q = CtpQuote()
         self.t = CtpTrade()
 
-    def on_order(self, stra, order):
+    def on_order(self, stra, order=OrderItem()):
         """此处调用ctp接口即可实现实际下单"""
-        p = Data()
-        p = stra
-        _order = OrderItem()
+
         _order = order
-        print('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}'.format(len(p.Orders), stra.Bars[0].D, _order.Direction, _order.Offset, _order.Price, _order.Volume, _order.Remark))
         # self.log.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(len(p.Orders), stra.Bars[0].D, _order.Direction, _order.Offset, _order.Price, _order.Volume, _order.Remark))
 
-        if self.real:
+        if stra.EnableOrder:
             print(order)
             # 平今与平昨;逻辑从C# 抄过来;没提示...不知道为啥,只能盲码了.
             if _order.Offset != OffsetType.Open:
@@ -144,21 +139,21 @@ class at_test:
         """取历史和实时K线数据,并执行策略回测"""
         stra = Data()
         for stra in self.stra_instances:
+            stra.EnableOrder = False
             # 取数据
             ddoc = self.read_from_mq(stra)
 
             # print params os strategy
-            stra.OnOrder = self.on_order
+            # stra.OnOrder = self.on_order
             for p in stra.Params:
                 print("{0}:{1}".format(p, stra.Params[p]), end=' ')
 
             for doc in ddoc:
                 bar = Bar(doc["_id"], doc["High"], doc["Low"], doc["Open"], doc["Close"], doc["Volume"], doc["OpenInterest"])
                 stra.__new_min_bar__(bar)  # 调Data的onbar
+            stra.EnableOrder = True
 
         print("\ntest history is end.")
-
-        self.real = True
 
     def OnFrontConnected(self):
         """"""
@@ -172,8 +167,9 @@ class at_test:
         sleep(60)
         self.t.ReqConnect(self.front_trade)
 
-    def OnRspUserLogin(self, info=InfoField):
+    def OnRspUserLogin(self, info=InfoField()):
         """"""
+
         print(info.ErrorID)
         if info.ErrorID == 7:
             _thread.start_new_thread(self.relogin, ())
@@ -219,7 +215,7 @@ class at_test:
         for stra in self.stra_instances:
             if stra.Instrument == tick.Instrument:
                 stra.on_tick(tick)
-                print(tick)
+                # print(tick)
 
     def CTPRun(self, front_trade='tcp://180.168.146.187:10000', front_quote='tcp://180.168.146.187:10010', broker='9999', investor='008109', pwd='1'):
         """"""
@@ -240,10 +236,13 @@ class at_test:
 
 if __name__ == '__main__':
     p = at_test()
-    p.load_strategy()
-    p.read_data_test()
     if len(sys.argv) == 1:
         p.CTPRun()
     else:
         p.CTPRun(investor=sys.argv[1], pwd=sys.argv[2])
+    p.load_strategy()
+    p.read_data_test()
+    # 注销148行
+    for stra in p.stra_instances:
+        stra.OnOrder = p.on_order
     input()

@@ -36,9 +36,6 @@ class SMACross(Data):
         if len(self.C) < self.p_ma2:
             return
 
-        if self.Tick.Instrument and self.Tick.Instrument != '':
-            print(self.Tick.LastPrice)
-
         ma1 = talib.SMA(self.C, self.p_ma1)
         ma2 = talib.SMA(self.C, self.p_ma2)
 

@@ -44,3 +44,4 @@ py_at/tmp.html
 web_flask/log*/
 orders.csv
 ./log/*.*
+strategies/send.py

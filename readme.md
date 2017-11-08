@@ -18,7 +18,21 @@
     *  提供数据日常维护服务
     *  提供实时数据分钟级服务
     *  提供分笔数据(内网)
-## 使用
+## 运行环境
+* python 3.6
+    * pyzmq
+        * windows pip install pyzmq
+        * linux   http://user.qzone.qq.com/24918700/blog/1507092912
+    * talib
+        * windows http://user.qzone.qq.com/24918700/blog/1486954718
+        * linux   http://user.qzone.qq.com/24918700/blog/1483279805
+## 开发环境
+* vscode
+    * windows  https://code.visualstudio.com/Download
+    * linux  http://user.qzone.qq.com/24918700/blog/1506828997
+## 发布
+* git clone https://github.com/haifengat/hf_at_py.git
+## 运行
 * 调用目录下创建log目录
 * 执行 python py_at/at_test.py ivnestor pwd
 ## 附atom快捷键

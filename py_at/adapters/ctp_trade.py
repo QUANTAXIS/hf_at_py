@@ -49,8 +49,9 @@ class CtpTrade(TradeAdapter):
         self.IsLogin = False
         self.OnFrontDisConnected(nReason)
 
-    def __OnRspUserLogin(self, pRspUserLogin=CThostFtdcRspUserLoginField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
+    def __OnRspUserLogin(self, pRspUserLogin=CThostFtdcRspUserLoginField(), pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         """"""
+        
         self.Investor = pRspUserLogin.getUserID()
         self.BrokerID = pRspUserLogin.getBrokerID()
 
@@ -399,31 +400,31 @@ class CtpTrade(TradeAdapter):
         self.t.Release()
 
     def OnFrontConnected(self):
-        """"""
+        """接口连接"""
         pass
 
     def OnFrontDisConnected(self, error=0):
-        """"""
+        """接口断开"""
         pass
 
     def OnRspUserLogin(self, info=InfoField):
-        """"""
+        """登录响应"""
         pass
 
     def OnRtnOrder(self, f=OrderField):
-        """"""
+        """委托返回"""
         pass
 
     def OnRtnTrade(self, f=TradeField):
-        """"""
+        """成交返回"""
         pass
 
     def OnRtnCancel(self, f=OrderField):
-        """"""
+        """撤单响应"""
         pass
 
     def OnRtnErrOrder(self, f=OrderField, info=InfoField):
-        """"""
+        """委托错误响应"""
         print(f)
         print(info)
 
