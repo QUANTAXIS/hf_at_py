@@ -50,8 +50,7 @@ class CtpTrade(TradeAdapter):
         self.OnFrontDisConnected(nReason)
 
     def __OnRspUserLogin(self, pRspUserLogin=CThostFtdcRspUserLoginField(), pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
-        """"""
-        
+
         self.Investor = pRspUserLogin.getUserID()
         self.BrokerID = pRspUserLogin.getBrokerID()
 

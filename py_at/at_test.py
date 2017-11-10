@@ -212,9 +212,12 @@ class at_test:
     def q_Tick(self, tick=Tick):
         """"""
         # print(tick)
-        for stra in self.stra_instances:
-            if stra.Instrument == tick.Instrument:
-                stra.on_tick(tick)
+        for data in self.stra_instances:
+            if data.Instrument == tick.Instrument:
+                data.on_tick(tick)
+                for d2 in data.datalist:
+                    if d2.Instrument == tick.Instrument:
+                        d2.on_tick(tick)
                 # print(tick)
 
     def CTPRun(self, front_trade='tcp://180.168.146.187:10000', front_quote='tcp://180.168.146.187:10010', broker='9999', investor='008109', pwd='1'):
@@ -241,8 +244,11 @@ if __name__ == '__main__':
     else:
         p.CTPRun(investor=sys.argv[1], pwd=sys.argv[2])
     p.load_strategy()
-    p.read_data_test()
+    # p.read_data_test()
     # 注销148行
     for stra in p.stra_instances:
+        stra.SingleOrderOneBar = False
+        stra.EnableOrder = True
         stra.OnOrder = p.on_order
     input()
+

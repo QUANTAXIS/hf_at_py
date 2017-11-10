@@ -18,65 +18,66 @@ from py_at.switch import switch
 
 class Data(object):
     '''数据类, 策略继承此类'''
-    '''K线序列'''
-    Bars = []
-    '''日线-日期'''
-    DateD = []
-    '''日线-开'''
-    OpenD = []
-    '''日线-高'''
-    HighD = []
-    '''日线-低'''
-    LowD = []
-    '''日线-收'''
-    CloseD = []
-    '''合约'''
-    Instrument = ''
-    '''周期'''
-    Interval = 1
-    '''周期类型'''
-    IntervalType = IntervalType.Minute
-    '''起始测试时间
-    格式:yyyyMMdd[%Y%m%d]
-    默认:20160101'''
-    BeginDate = '20160101'
-    '''结束测试时间
-    格式:yyyyMMdd[%Y%m%d]
-    默认:本地时间'''
-    EndDate = time.strftime("%Y%m%d", time.localtime())  # 默认值取当日
-    '''分笔数据
-    Tick.Instrument用来判断是否有实盘数据'''
-    Tick = Tick()
-    '''参数'''
-    Params = {}
-    '''买卖信号'''
-    Orders = []
-    '''指标字典
-    策略使用的指标保存在此字典中
-    以便管理程序显示和处理'''
-    IndexDict = {}
-    '''策略标识'''
-    ID = None
-    '''允许委托下单'''
-    EnableOrder = False
-    '''每bar只执行一次交易'''
-    SingleOrderOneBar = True
-
-    # 序列变量
-    inputs = {
-        'date': np.array([]),
-        'open': np.array([]),
-        'high': np.array([]),
-        'low': np.array([]),
-        'close': np.array([]),
-        'volume': np.array([]),
-        'openinterest': np.array([]),
-    }
-
-    _lastOrder = OrderItem()
 
     def __init__(self):
         '''初始所有变量'''
+        '''K线序列'''
+        self.Bars = []
+        '''日线-日期'''
+        self.DateD = []
+        '''日线-开'''
+        self.OpenD = []
+        '''日线-高'''
+        self.HighD = []
+        '''日线-低'''
+        self.LowD = []
+        '''日线-收'''
+        self.CloseD = []
+        '''合约'''
+        self.Instrument = ''
+        '''周期'''
+        self.Interval = 1
+        '''周期类型'''
+        self.IntervalType = IntervalType.Minute
+        '''起始测试时间
+        格式:yyyyMMdd[%Y%m%d]
+        默认:20160101'''
+        self.BeginDate = '20160101'
+        '''结束测试时间
+        格式:yyyyMMdd[%Y%m%d]
+        默认:本地时间'''
+        self.EndDate = time.strftime("%Y%m%d", time.localtime())  # 默认值取当日
+        '''分笔数据
+        Tick.Instrument用来判断是否有实盘数据'''
+        self.Tick = Tick()
+        '''参数'''
+        self.Params = {}
+        '''买卖信号'''
+        self.Orders = []
+        '''指标字典
+        策略使用的指标保存在此字典中
+        以便管理程序显示和处理'''
+        self.IndexDict = {}
+        '''策略标识'''
+        self.ID = None
+        '''允许委托下单'''
+        self.EnableOrder = True
+        '''每bar只执行一次交易'''
+        self.SingleOrderOneBar = True
+
+        # 序列变量
+        self.inputs = {
+            'date': np.array([]),
+            'open': np.array([]),
+            'high': np.array([]),
+            'low': np.array([]),
+            'close': np.array([]),
+            'volume': np.array([]),
+            'openinterest': np.array([]),
+        }
+
+        self._lastOrder = OrderItem()
+
         self.D = self.inputs['date']
         self.H = self.inputs['high']
         self.L = self.inputs['low']
@@ -88,103 +89,128 @@ class Data(object):
     # 当前策略相关
     @property
     def AvgEntryPriceShort(self):
+        '''开仓均价-空'''
         return self._lastOrder.AvgEntryPriceShort
 
     @property
     def AvgEntryPriceLong(self):
+        '''开仓均价-多'''
         return self._lastOrder.AvgEntryPriceLong
 
     @property
     def PositionLong(self):
+        '''持仓-多'''
         return self._lastOrder.PositionLong
 
     @property
     def PositionShort(self):
+        '''持仓-空'''
         return self._lastOrder.PositionShort
 
     @property
     def EntryDateLong(self):
+        '''开仓时间-多'''
         return self._lastOrder.EntryDateLong
 
     @property
     def EntryPriceLong(self):
+        '''开仓价格-多'''
         return self._lastOrder.EntryPriceLong
 
     @property
     def ExitDateShort(self):
+        '''平仓时间-空'''
         return self._lastOrder.ExitDateShort
 
     @property
     def ExitPriceShort(self):
+        '''平仓价-空'''
         return self._lastOrder.ExitPriceShort
 
     @property
     def EntryDateShort(self):
+        '''开仓时间-空'''
         return self._lastOrder.EntryDateShort
 
     @property
     def EntryPriceShort(self):
+        '''开仓价-空'''
         return self._lastOrder.EntryPriceShort
 
     @property
     def ExitDateLong(self):
+        '''平仓时间-多'''
         return self._lastOrder.ExitDateLong
 
     @property
     def ExitPriceLong(self):
+        '''平仓价-多'''
         return self._lastOrder.ExitPriceLong
 
     @property
     def LastEntryDateShort(self):
+        '''最后开仓时间-空'''
         return self._lastOrder.LastEntryDateShort
 
     @property
     def LastEntryPriceShort(self):
+        '''最后开仓价-空'''
         return self._lastOrder.LastEntryPriceShort
 
     @property
     def LastEntryDateLong(self):
+        '''最后开仓时间-多'''
         return self._lastOrder.LastEntryDateLong
 
     @property
     def LastEntryPriceLong(self):
+        '''最后开仓价-多'''
         return self._lastOrder.LastEntryPriceLong
 
     @property
     def IndexEntryLong(self):
+        '''开仓到当前K线数量-多'''
         return self._lastOrder.IndexEntryLong
 
     @property
     def IndexEntryShort(self):
+        '''开仓到当前K线数量-空'''
         return self._lastOrder.IndexEntryShort
 
     @property
     def IndexLastEntryLong(self):
+        '''最后平仓到当前K线数量-多'''
         return self._lastOrder.IndexLastEntryLong
 
     @property
     def IndexLastEntryShort(self):
+        '''最后平仓到当前K线数量-空'''
         return self._lastOrder.IndexLastEntryShort
 
     @property
     def IndexExitLong(self):
+        '''平仓到当前K线数量-多'''
         return self._lastOrder.IndexExitLong
 
     @property
     def IndexExitShort(self):
+        '''平仓到当前K线数量-空'''
         return self._lastOrder.IndexExitShort
 
     @property
     def Position(self):
+        '''持仓净头寸'''
         return self.PositionLong - self.PositionShort
 
     @property
     def CurrentBar(self):
+        '''当前K线序号(0开始)'''
         return max(len(self.Bars) - 1, 0)
 
     def on_tick(self, tick):
+        '''分笔数据处理'''
         self.Tick = tick
-        ''' 取此tick对应的分钟时间'''
+        # 取此tick对应的分钟时间
         # bar_time = time.strptime(time.strftime("%Y-%m-%d %H:%M", tick.UpdateTime), "%Y-%m-%d %H:%M")
         bar_time = tick.UpdateTime[:-2] + '00'  # time.strftime("%Y%m%d %H:%M:00", time.strptime(tick.UpdateTime, "%Y%m%d %H:%M:%S"))
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:  # 新数据
@@ -420,14 +446,14 @@ class Data(object):
         self.__order__(DirectType.Buy, OffsetType.Open, price, volume, remark)
 
     def Sell(self, price, volume, remark):
-        """买开"""
+        """买平"""
         self.__order__(DirectType.Sell, OffsetType.Close, price, volume,
                        remark)
 
     def SellShort(self, price, volume, remark):
-        """买开"""
+        """卖开"""
         self.__order__(DirectType.Sell, OffsetType.Open, price, volume, remark)
 
     def BuyToCover(self, price, volume, remark):
-        """买开"""
+        """买平"""
         self.__order__(DirectType.Buy, OffsetType.Close, price, volume, remark)

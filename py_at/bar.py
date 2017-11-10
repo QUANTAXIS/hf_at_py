@@ -11,12 +11,21 @@ class Bar(object):
     '''K线数据'''
 
     def __init__(self, datetime='', h=0.0, l=0.0, o=0.0, c=0.0, v=0, i=0.0):
+        """初始化"""
+        '''时间
+        yyyyMMdd HH:mm:ss'''
         self.D = datetime
+        '''最高价'''
         self.H = h
+        '''最低价'''
         self.L = l
+        '''开仓价'''
         self.O = o
+        '''收盘价'''
         self.C = c
+        '''成交量'''
         self.V = v
+        '''持仓价'''
         self.I = i
         self.__preVolume = 0
 
