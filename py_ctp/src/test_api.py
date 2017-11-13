@@ -16,7 +16,7 @@ sys.path.append(os.path.join(sys.path[0], '..'))  # 调用父目录下的模块
 sys.path.append(os.path.join(sys.path[0], '../..'))  # 调用父目录下的模块
 
 from py_ctp.enums import OrderPriceTypeType, DirectionType, OffsetFlagType, HedgeFlagType, TimeConditionType, VolumeConditionType, ContingentConditionType, ForceCloseReasonType, OrderStatusType, ActionFlagType
-from py_ctp.structs import CThostFtdcMarketDataField, CThostFtdcRspAuthenticateField, CThostFtdcRspInfoField, CThostFtdcSettlementInfoConfirmField, CThostFtdcInstrumentStatusField, CThostFtdcInputOrderField, CThostFtdcOrderField
+from py_ctp.structs import CThostFtdcMarketDataField, CThostFtdcRspAuthenticateField, CThostFtdcRspInfoField, CThostFtdcSettlementInfoConfirmField, CThostFtdcInstrumentStatusField, CThostFtdcInputOrderField, CThostFtdcOrderField, CThostFtdcInvestorPositionField, CThostFtdcTradingAccountField, CThostFtdcSpecificInstrumentField
 from py_ctp.trade import Trade
 from py_ctp.quote import Quote
 
@@ -51,16 +51,22 @@ class Test:
 
     def q_OnRspUserLogin(self, rsp, info, req, last):
         print(info)
-
-        # insts = create_string_buffer(b'cu', 5)
         self.q.SubscribeMarketData('rb1805')
+
+    def q_OnRspSubMarketData(
+            self,
+            pSpecificInstrument=CThostFtdcSpecificInstrumentField,
+            pRspInfo=CThostFtdcRspInfoField,
+            nRequestID=int,
+            bIsLast=bool):
+        pass
 
     def q_OnTick(self, tick):
         f = CThostFtdcMarketDataField()
         f = tick
-        # print(tick)
 
         if not self.ordered:
+            print(tick)
             _thread.start_new_thread(self.Order, (f, ))
             self.ordered = True
 
@@ -119,7 +125,6 @@ class Test:
         print(info)
         i = CThostFtdcRspInfoField()
         i = info
-        print(i.getErrorMsg())
 
         if i.getErrorID() == 0:
             self.Session = rsp.getSessionID()
@@ -132,11 +137,11 @@ class Test:
             pRspInfo=CThostFtdcRspInfoField,
             nRequestID=int,
             bIsLast=bool):
-        print(pSettlementInfoConfirm)
         _thread.start_new_thread(self.StartQuote, ())
         _thread.start_new_thread(self.Qry, ())
 
     def StartQuote(self):
+        print('start quote')
         self.q.CreateApi()
         spi = self.q.CreateSpi()
         self.q.RegisterSpi(spi)
@@ -144,12 +149,12 @@ class Test:
         self.q.OnFrontConnected = self.q_OnFrontConnected
         self.q.OnRspUserLogin = self.q_OnRspUserLogin
         self.q.OnRtnDepthMarketData = self.q_OnTick
-
+        self.q.OnRspSubMarketData = self.q_OnRspSubMarketData
         self.q.RegCB()
 
         self.q.RegisterFront(self.front_quote)
         self.q.Init()
-        self.q.Join()
+        # self.q.Join()
 
     def Qry(self):
         sleep(1.1)
@@ -188,7 +193,13 @@ class Test:
                 SessionID=pOrder.getSessionID(),
                 ActionFlag=ActionFlagType.Delete)
 
-    def OnRspInstrument(self, instrument, last, rspinfo, nreq):
+    def OnRspInstrument(self, instrument, rspinfo, nreq, last):
+        pass
+
+    def OnRspPosition(self, pInvestorPosition=CThostFtdcInvestorPositionField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
+        pass
+
+    def OnRspAccount(self, pTradingAccount=CThostFtdcTradingAccountField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         pass
 
     def CTPRun(self,
@@ -207,6 +218,8 @@ class Test:
 
         self.t.CreateApi()
         spi = self.t.CreateSpi()
+        self.t.SubscribePrivateTopic(2)
+        self.t.SubscribePublicTopic(2)
         self.t.RegisterSpi(spi)
 
         self.t.OnFrontConnected = self.OnFrontConnected
@@ -215,6 +228,8 @@ class Test:
         self.t.OnRspQryInstrument = self.OnRspInstrument
         self.t.OnRtnInstrumentStatus = self.OnRtnInstrumentStatus
         self.t.OnRtnOrder = self.OnRtnOrder
+        self.t.OnRspQryInvestorPosition = self.OnRspPosition
+        self.t.OnRspQryTradingAccount = self.OnRspAccount
         # self.t.OnRtnTrade = self.OnRtnTrade
         # self.t.OnRtnCancel = self.OnRtnCancel
         # self.t.OnRtnErrOrder = self.OnRtnErrOrder

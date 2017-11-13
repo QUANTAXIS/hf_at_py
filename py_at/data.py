@@ -77,16 +77,21 @@ class Data(object):
         }
 
         self._lastOrder = OrderItem()
-
+        '''时间'''
         self.D = self.inputs['date']
+        '''最高价'''
         self.H = self.inputs['high']
+        '''最低价'''
         self.L = self.inputs['low']
+        '''开盘价'''
         self.O = self.inputs['open']
+        '''收盘价'''
         self.C = self.inputs['close']
+        '''交易量'''
         self.V = self.inputs['volume']
+        '''持仓量'''
         self.I = self.inputs['openinterest']
 
-    # 当前策略相关
     @property
     def AvgEntryPriceShort(self):
         '''开仓均价-空'''
