@@ -294,6 +294,8 @@ class CtpTrade(TradeAdapter):
     def ReqConnect(self, pAddress=''):
         self.t.CreateApi()
         spi = self.t.CreateSpi()
+        self.t.SubscribePrivateTopic(2)
+        self.t.SubscribePublicTopic(2)
         self.t.RegisterSpi(spi)
 
         self.t.OnFrontConnected = self.__OnFrontConnected

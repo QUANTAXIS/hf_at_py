@@ -66,9 +66,9 @@ class OrderItem(object):
         '''最后一次开仓价格-空'''
         self.LastEntryPriceShort = 0.0
         '''开仓到当前K线的数量(0开始)-多'''
-        self.IndexEntryLong = -1t = 0.0
+        self.IndexEntryLong = 0.0
         '''开仓到当前K线的数量(0开始)-空'''
-        self.IndexEntryShort = -1t = 0.0
+        self.IndexEntryShort = 0.0
         '''最后开仓到当前K线的数量(0开始)-多'''
         self.IndexLastEntryLong = -1
         '''最后开仓到当前K线的数量(0开始)-空'''

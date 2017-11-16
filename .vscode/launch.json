@@ -5,6 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "test_stra",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${workspaceRoot}/py_at/stra_test.py",
+            "cwd": "${workspaceRoot}",
+            "env": {},
+            "envFile": "${workspaceRoot}/.env",
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
+        },
+        {
             "name": "test_at",
             "type": "python",
             "request": "launch",
@@ -19,7 +35,7 @@
                 "WaitOnNormalExit",
                 "RedirectOutput"
             ]
-        }，
+        },
         {
             "name": "test_ctp",
             "type": "python",

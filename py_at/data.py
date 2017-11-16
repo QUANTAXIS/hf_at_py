@@ -11,7 +11,7 @@ import numpy as np
 
 from py_at.enums import IntervalType, DirectType, OffsetType
 from py_at.tick import Tick
-from py_at.order_item import OrderItem
+from py_at.order import OrderItem
 from py_at.bar import Bar
 from py_at.switch import switch
 
@@ -19,78 +19,45 @@ from py_at.switch import switch
 class Data(object):
     '''数据类, 策略继承此类'''
 
-    def __init__(self):
+    def __init__(self, stra_barupdate, stra_onorder):
         '''初始所有变量'''
+        self.BarUpdate = stra_barupdate
+        self.OnOrder = stra_onorder
+        '''每bar只执行一次交易'''
+        self.SingleOrderOneBar = False
         '''K线序列'''
         self.Bars = []
-        '''日线-日期'''
-        self.DateD = []
-        '''日线-开'''
-        self.OpenD = []
-        '''日线-高'''
-        self.HighD = []
-        '''日线-低'''
-        self.LowD = []
-        '''日线-收'''
-        self.CloseD = []
         '''合约'''
         self.Instrument = ''
         '''周期'''
         self.Interval = 1
         '''周期类型'''
         self.IntervalType = IntervalType.Minute
-        '''起始测试时间
-        格式:yyyyMMdd[%Y%m%d]
-        默认:20160101'''
-        self.BeginDate = '20160101'
-        '''结束测试时间
-        格式:yyyyMMdd[%Y%m%d]
-        默认:本地时间'''
-        self.EndDate = time.strftime("%Y%m%d", time.localtime())  # 默认值取当日
         '''分笔数据
         Tick.Instrument用来判断是否有实盘数据'''
         self.Tick = Tick()
-        '''参数'''
-        self.Params = {}
         '''买卖信号'''
         self.Orders = []
         '''指标字典
         策略使用的指标保存在此字典中
         以便管理程序显示和处理'''
         self.IndexDict = {}
-        '''策略标识'''
-        self.ID = None
-        '''允许委托下单'''
-        self.EnableOrder = True
-        '''每bar只执行一次交易'''
-        self.SingleOrderOneBar = True
-
-        # 序列变量
-        self.inputs = {
-            'date': np.array([]),
-            'open': np.array([]),
-            'high': np.array([]),
-            'low': np.array([]),
-            'close': np.array([]),
-            'volume': np.array([]),
-            'openinterest': np.array([]),
-        }
+        '''时间'''
+        self.D = np.array([])
+        '''最高价'''
+        self.H = np.array([])
+        '''最低价'''
+        self.L = np.array([])
+        '''开盘价'''
+        self.O = np.array([])
+        '''收盘价'''
+        self.C = np.array([])
+        '''交易量'''
+        self.V = np.array([])
+        '''持仓量'''
+        self.I = np.array([])
 
         self._lastOrder = OrderItem()
-        '''时间'''
-        self.D = self.inputs['date']
-        '''最高价'''
-        self.H = self.inputs['high']
-        '''最低价'''
-        self.L = self.inputs['low']
-        '''开盘价'''
-        self.O = self.inputs['open']
-        '''收盘价'''
-        self.C = self.inputs['close']
-        '''交易量'''
-        self.V = self.inputs['volume']
-        '''持仓量'''
-        self.I = self.inputs['openinterest']
 
     @property
     def AvgEntryPriceShort(self):
@@ -300,18 +267,6 @@ class Data(object):
             self.V[-1] = old_bar.V
             self.I[-1] = old_bar.I = bar.I
             # bar.A = tick.AveragePrice
-        # 日线数据处理
-        date = '{0}-{1}-{2}'.format(year, mon, day)
-        if len(self.DateD) == 0 or self.DateD[-1] != date:
-            self.DateD.insert(0, date)
-            self.OpenD.insert(0, bar.O)
-            self.HighD.insert(0, bar.H)
-            self.LowD.insert(0, bar.L)
-            self.CloseD.insert(0, bar.C)
-        else:
-            self.HighD[-1] = max(self.HighD[-1], bar.H)
-            self.LowD[-1] = min(self.LowD[-1], bar.L)
-            self.CloseD[-1] = bar.C
 
         self.BarUpdate()
 
@@ -325,20 +280,15 @@ class Data(object):
         self.C[-1] = bar.C
         self.V[-1] = bar.V
         self.I[-1] = bar.I
-
-        self.HighD[-1] = max(self.HighD[-1], bar.H)
-        self.LowD[-1] = min(self.LowD[-1], bar.L)
-        self.CloseD[-1] = bar.C
-
         self.BarUpdate(bar)
 
-    def BarUpdate(self, bar):
-        """数据更新时调用此函数"""
-        pass
+    # def BarUpdate(self, bar):
+    #     """数据更新时调用此函数"""
+    #     pass
 
-    def OnOrder(self, stra, order):
-        """继承类中实现此函数,有策略信号产生时调用"""
-        pass
+    # def OnOrder(self, stra, order):
+    #     """继承类中实现此函数,有策略信号产生时调用"""
+    #     pass
 
     def __order__(self, direction, offset, price, volume, remark):
         """策略执行信号"""
@@ -446,7 +396,7 @@ class Data(object):
 
         self.OnOrder(self, order)
 
-    def Buy(self, price, volume, remark):
+    def Buy(self, price=0.0, volume=1, remark=''):
         """买开"""
         self.__order__(DirectType.Buy, OffsetType.Open, price, volume, remark)
 

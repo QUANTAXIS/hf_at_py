@@ -5,14 +5,41 @@ __title__ = ''
 __author__ = 'HaiFeng'
 __mtime__ = '2017/11/13'
 """
+import time
+from py_at.structs import DirectType, OffsetType
+from py_at.bar import Bar
+from py_at.data import Data
+from py_at.order import OrderItem
 
 
-class Strategy:
+class Strategy(object):
     '''策略类'''
 
     def __init__(self):
         '''初始化'''
+        '''策略标识'''
+        self.ID = 0
+        '''数据序列'''
         self.Datas = []
+        '''允许委托下单'''
+        self.EnableOrder = True
+        '''每bar只执行一次交易'''
+        self.SingleOrderOneBar = True
+        '''起始测试时间
+        格式:yyyyMMdd[%Y%m%d]
+        默认:20170101'''
+        self.BeginDate = '20170101'
+        '''结束测试时间
+        格式:yyyyMMdd[%Y%m%d]
+        默认:当前时间'''
+        self.EndDate = time.strftime("%Y%m%d", time.localtime())  # 默认值取当日期
+        '''参数'''
+        self.Params = {}
+        '''允许委托下单'''
+        self.EnableOrder = True
+
+        data = Data(self.BarUpdate, self.OnOrder)
+        self.Datas.append(data)
 
     @property
     def DateD(self):
@@ -55,29 +82,10 @@ class Strategy:
         return self.Datas[0].IntervalType
 
     @property
-    def BeginDate(self):
-        '''起始测试时间
-        格式:yyyyMMdd[%Y%m%d]
-        默认:20160101'''
-        return self.Datas[0].BeginDate
-
-    @property
-    def EndDate(self):
-        '''结束测试时间
-        格式:yyyyMMdd[%Y%m%d]
-        默认:本地时间'''
-        return self.Datas[0].EndDate
-
-    @property
     def Tick(self):
         '''分笔数据
         Tick.Instrument用来判断是否有实盘数据'''
         return self.Datas[0].Tick
-
-    @property
-    def Params(self):
-        '''参数'''
-        return self.Datas[0].Params
 
     @property
     def Orders(self):
@@ -90,21 +98,6 @@ class Strategy:
         策略使用的指标保存在此字典中
         以便管理程序显示和处理'''
         return self.Datas[0].IndexDict
-
-    @property
-    def ID(self):
-        '''策略标识'''
-        return self.Datas[0].ID
-
-    @property
-    def EnableOrder(self):
-        '''允许委托下单'''
-        return self.Datas[0].EnableOrder
-
-    @property
-    def SingleOrderOneBar(self):
-        '''每bar只执行一次交易'''
-        return self.Datas[0].SingleOrderOneBar
 
     @property
     def D(self):
@@ -254,9 +247,35 @@ class Strategy:
     @property
     def Position(self):
         '''持仓净头寸'''
-        return self.PositionLong - self.PositionShort
+        return self.Datas[0].Position
 
     @property
     def CurrentBar(self):
         '''当前K线序号(0开始)'''
-        return max(len(self.Bars) - 1, 0)
+        return self.Datas[0].CurrentBar
+
+    def Buy(self, price=0.0, volume=1, remark=''):
+        """买开"""
+        self.Datas[0].Buy(price, volume, remark)
+
+    def Sell(self, price, volume, remark):
+        """买平"""
+        self.Datas[0].Sell(price, volume, remark)
+
+    def SellShort(self, price, volume, remark):
+        """卖开"""
+        self.Datas[0].SellShort(price, volume, remark)
+
+    def BuyToCover(self, price, volume, remark):
+        """买平"""
+        self.Datas[0].BuyToCover(price, volume, remark)
+
+    def BarUpdate(self, data=Data, bar=Bar):
+        """行情触发
+        历史行情:每分钟触发一次
+        实时行情:每分钟触发一次"""
+        pass
+
+    def OnOrder(self, data=Data, order=OrderItem):
+        """继承类中实现此函数,有策略信号产生时调用"""
+        pass
