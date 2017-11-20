@@ -21,8 +21,8 @@ class Data(object):
 
     def __init__(self, stra_barupdate, stra_onorder):
         '''初始所有变量'''
-        self.BarUpdate = stra_barupdate
-        self.OnOrder = stra_onorder
+        self.stra_uppdate = stra_barupdate
+        self.stra_onorder = stra_onorder
         '''每bar只执行一次交易'''
         self.SingleOrderOneBar = False
         '''K线序列'''
@@ -268,7 +268,7 @@ class Data(object):
             self.I[-1] = old_bar.I = bar.I
             # bar.A = tick.AveragePrice
 
-        self.BarUpdate()
+        self.stra_uppdate(self, bar)
 
     def __update_bar__(self, bar):
         """更新当前数据序列"""
@@ -280,15 +280,7 @@ class Data(object):
         self.C[-1] = bar.C
         self.V[-1] = bar.V
         self.I[-1] = bar.I
-        self.BarUpdate(bar)
-
-    # def BarUpdate(self, bar):
-    #     """数据更新时调用此函数"""
-    #     pass
-
-    # def OnOrder(self, stra, order):
-    #     """继承类中实现此函数,有策略信号产生时调用"""
-    #     pass
+        self.stra_uppdate(self, bar)
 
     def __order__(self, direction, offset, price, volume, remark):
         """策略执行信号"""
@@ -393,8 +385,7 @@ class Data(object):
                 break
 
         self._lastOrder = order
-
-        self.OnOrder(self, order)
+        self.stra_onorder(self, order)
 
     def Buy(self, price=0.0, volume=1, remark=''):
         """买开"""

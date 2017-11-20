@@ -80,6 +80,7 @@ class CtpQuote(QuoteAdapter):
         tick.UpdateTime = str  # time.strptime(str, '%Y%m%d %H:%M:%S')
         self.DicTick[tick.Instrument] = tick
         _thread.start_new_thread(self.OnRtnTick, (tick, ))
+        # self.OnRtnTick(tick)
 
     def OnFrontDisConnected(self, error=0):
         """"""

@@ -24,8 +24,9 @@ class Test(Strategy):
         data.IntervalType = IntervalType.Minute
         self.BeginDate = '20171111'
 
-    def BarUpdate(self, data=Data, bar=Bar):
+    def OnBarUpdate(self, data=Data, bar=Bar):
         if self.Tick.Instrument == '':
             return
-        if self.Tick.UpdateTime[-2:] == '00':
+        print(self.Tick.UpdateTime[-2:])
+        if self.Tick.UpdateTime[-2:] == '00' or self.Tick.UpdateTime[-2:] == '30':
             self.Buy(self.O[0], 1, '')

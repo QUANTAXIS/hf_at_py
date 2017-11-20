@@ -38,7 +38,7 @@ class Strategy(object):
         '''允许委托下单'''
         self.EnableOrder = True
 
-        data = Data(self.BarUpdate, self.OnOrder)
+        data = Data(self.__BarUpdate, self.__OnOrder)
         self.Datas.append(data)
 
     @property
@@ -270,12 +270,18 @@ class Strategy(object):
         """买平"""
         self.Datas[0].BuyToCover(price, volume, remark)
 
-    def BarUpdate(self, data=Data, bar=Bar):
+    def OnBarUpdate(self, data=Data, bar=Bar):
         """行情触发
         历史行情:每分钟触发一次
         实时行情:每分钟触发一次"""
         pass
 
-    def OnOrder(self, data=Data, order=OrderItem):
+    def DataOrder(self, stra, data=Data, order=OrderItem):
         """继承类中实现此函数,有策略信号产生时调用"""
         pass
+
+    def __BarUpdate(self, data=Data, bar=Bar):
+        self.OnBarUpdate(data, bar)
+
+    def __OnOrder(self, data=Data, order=OrderItem):
+        self.DataOrder(self, data, order)

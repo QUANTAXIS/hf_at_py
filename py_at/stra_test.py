@@ -49,44 +49,44 @@ class at_test(object):
         self.q = CtpQuote()
         self.t = CtpTrade()
 
-    def on_order(self, stra, order=OrderItem()):
+    def on_order(self, stra, data, order):
         """此处调用ctp接口即可实现实际下单"""
+        print('stra order')
 
-        _order = order
         # self.log.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(len(p.Orders), stra.Bars[0].D, _order.Direction, _order.Offset, _order.Price, _order.Volume, _order.Remark))
 
         if stra.EnableOrder:
             print(order)
             # 平今与平昨;逻辑从C# 抄过来;没提示...不知道为啥,只能盲码了.
-            if _order.Offset != OffsetType.Open:
+            if order.Offset != OffsetType.Open:
                 key = '{0}_{1}'.format(
-                    _order.Instrument,
-                    int(DirectType.Sell if _order.Direction == DirectType.Buy
+                    order.Instrument,
+                    int(DirectType.Sell if order.Direction == DirectType.Buy
                         else DirectType.Buy))
                 # 无效,没提示...pf = PositionField()
                 pf = self.t.DicPositionField.get(key)
                 if not pf or pf.Position <= 0:
                     print('没有对应的持仓')
                 else:
-                    volClose = min(pf.Position, _order.Volume)  # 可平量
-                    instField = self.t.DicInstrument[_order.Instrument]
+                    volClose = min(pf.Position, order.Volume)  # 可平量
+                    instField = self.t.DicInstrument[order.Instrument]
                     if instField.ExchangeID == 'SHFE':
                         tdClose = min(volClose, pf.TdPosition)
                         if tdClose > 0:
                             self.t.ReqOrderInsert(
-                                _order.Instrument, _order.Direction,
-                                OffsetType.CloseToday, _order.Price, tdClose,
+                                order.Instrument, order.Direction,
+                                OffsetType.CloseToday, order.Price, tdClose,
                                 OrderType.Limit, 100)
                             volClose -= tdClose
                     if volClose > 0:
-                        self.t.ReqOrderInsert(_order.Instrument,
-                                              _order.Direction,
-                                              OffsetType.Close, _order.Price,
+                        self.t.ReqOrderInsert(order.Instrument,
+                                              order.Direction,
+                                              OffsetType.Close, order.Price,
                                               volClose, OrderType.Limit, 100)
             else:
-                self.t.ReqOrderInsert(stra.Instrument, _order.Direction,
-                                      OffsetType.Open, _order.Price,
-                                      _order.Volume, OrderType.Limit, 100)
+                self.t.ReqOrderInsert(stra.Instrument, order.Direction,
+                                      OffsetType.Open, order.Price,
+                                      order.Volume, OrderType.Limit, 100)
 
     def load_strategy(self):
         """加载../strategy目录下的策略"""
@@ -234,7 +234,7 @@ class at_test(object):
             for data in stra.Datas:
                 if data.Instrument == tick.Instrument:
                     data.on_tick(tick)
-                    print(tick)
+                    # print(tick)
 
     def CTPRun(self,
                front_trade='tcp://180.168.146.187:10000',
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     # 注销148行
     for stra in p.stra_instances:
         stra.EnableOrder = True
-        stra.OnOrder = p.on_order
+        stra.DataOrder = p.on_order
         for data in stra.Datas:
             data.SingleOrderOneBar = False
             p.q.ReqSubscribeMarketData(data.Instrument)
