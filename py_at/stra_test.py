@@ -93,7 +93,8 @@ class at_test(object):
         """通过文件名取到对应的继承Data的类并实例"""
         # for path in ['strategies', 'private']:
         for path in ['strategies']:
-            files = os.listdir(os.path.join(sys.path[0], '../strategies'))
+            files = os.listdir(
+                os.path.join(sys.path[0], '../{0}'.format(path)))
             for f in files:
                 if os.path.isdir(f) or os.path.splitext(
                         f)[0] == '__init__' or os.path.splitext(f)[-1] != ".py":
@@ -109,14 +110,25 @@ class at_test(object):
 
                 if not issubclass(c, Strategy):  # 类c是Data的子类
                     continue
-                print("# c:{0}", c)
-                obj = c()  # new class
-                print("# obj:{0}", obj)
-                self.stra_instances.append(obj)
+                print("# c:{0} class:{1}", c, class_name)
+                for filename in files:
+                    if '{0}_'.format(
+                            class_name) in filename and os.path.splitext(
+                                filename)[-1] == '.json':
+                        obj = c(path + '/' + filename)
+                        print("# obj:{0}", obj)
+                        self.stra_instances.append(obj)
+                    if filename == '{0}.json'.format(class_name):
+                        obj = c(path + '/' + filename)
+                        print("# obj:{0}", obj)
+                        self.stra_instances.append(obj)
+                # obj = c()  # new class
+                # print("# obj:{0}", obj)
+                # self.stra_instances.append(obj)
 
     def read_from_mq(self, stra):
         """netMQ"""
-        _stra = Strategy()  # 为了下面的提示信息创建
+        _stra = Strategy('')  # 为了下面的提示信息创建
         _stra = stra
         # pip install pyzmq即可安装
         context = zmq.Context()
@@ -128,7 +140,7 @@ class at_test(object):
             # 请求数据格式
             req = ReqPackage()
             req.Type = 0  # BarType.Min ????
-            req.Instrument = data.Instrument
+            req.Instrument = _stra.Instrument
             req.Begin = _stra.BeginDate
             req.End = _stra.EndDate
             # __dict__返回diction格式,即{key,value}格式
@@ -153,7 +165,7 @@ class at_test(object):
 
     def read_data_test(self):
         """取历史和实时K线数据,并执行策略回测"""
-        stra = Strategy()  # 只为后面的提示信息创建
+        stra = Strategy('')  # 只为后面的提示信息创建
         for stra in self.stra_instances:
             stra.EnableOrder = False
             # print params os strategy
@@ -267,7 +279,7 @@ if __name__ == '__main__':
     sleep(20)
     p.load_strategy()
     p.read_data_test()
-    
+
     # 注销148行
     for stra in p.stra_instances:
         stra.EnableOrder = True

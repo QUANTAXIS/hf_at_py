@@ -1,0 +1,25 @@
+[
+    {
+        "ID":10001,
+        "BeginDate":20171110,
+        "Datas":[
+            {
+                "Instrument":"CF801",
+                "IntervalType":1,
+                "Interval":5,
+                "Lots":1
+            },
+            {
+                "Instrument":"m1805",
+                "IntervalType":1,
+                "Interval":1,
+                "Lots":1
+            }
+        ],
+        "Paras":{
+            "Fast":10,
+            "Slow":20
+        }
+        
+    }
+]

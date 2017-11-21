@@ -38,6 +38,7 @@ class Data(object):
         self.Tick = Tick()
         '''买卖信号'''
         self.Orders = []
+        
         '''指标字典
         策略使用的指标保存在此字典中
         以便管理程序显示和处理'''

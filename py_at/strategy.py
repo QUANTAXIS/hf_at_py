@@ -6,6 +6,7 @@ __author__ = 'HaiFeng'
 __mtime__ = '2017/11/13'
 """
 import time
+import json
 from py_at.structs import DirectType, OffsetType
 from py_at.bar import Bar
 from py_at.data import Data
@@ -15,7 +16,7 @@ from py_at.order import OrderItem
 class Strategy(object):
     '''策略类'''
 
-    def __init__(self):
+    def __init__(self, jsonfile):
         '''初始化'''
         '''策略标识'''
         self.ID = 0
@@ -38,8 +39,20 @@ class Strategy(object):
         '''允许委托下单'''
         self.EnableOrder = True
 
-        data = Data(self.__BarUpdate, self.__OnOrder)
-        self.Datas.append(data)
+        if jsonfile=='':
+            return
+        else:
+            with open(jsonfile) as f:
+                stra=json.load(f)[0]
+                self.Params=stra['Paras']
+                self.BeginDate=stra['BeginDate']
+                for data in stra['Datas']:
+                    newdata=Data(self.__BarUpdate, self.__OnOrder)
+                    newdata.Instrument=data['Instrument']
+                    newdata.Interval = data['Interval']
+                    newdata.IntervalType = data['IntervalType']
+                    newdata.Lots=data['Lots']
+                    self.Datas.append(newdata)
 
     @property
     def DateD(self):

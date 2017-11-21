@@ -16,8 +16,8 @@ from py_at.bar import Bar
 class Test(Strategy):
     ''''''
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, jsonfile=''):
+        super().__init__(jsonfile)
         data = self.Datas[0]
         data.Instrument = 'rb1805'
         data.Interval = 1
@@ -27,6 +27,6 @@ class Test(Strategy):
     def OnBarUpdate(self, data=Data, bar=Bar):
         if self.Tick.Instrument == '':
             return
-        print(self.Tick.UpdateTime[-2:])
+        print(self.Datas[0].Tick.UpdateTime[-2:])
         if self.Tick.UpdateTime[-2:] == '00' or self.Tick.UpdateTime[-2:] == '30':
             self.Buy(self.O[0], 1, '')
