@@ -39,19 +39,19 @@ class Strategy(object):
         '''允许委托下单'''
         self.EnableOrder = True
 
-        if jsonfile=='':
+        if jsonfile == '':
             return
         else:
             with open(jsonfile) as f:
-                stra=json.load(f)[0]
-                self.Params=stra['Paras']
-                self.BeginDate=stra['BeginDate']
+                stra = json.load(f)[0]
+                self.Params = stra['Paras']
+                self.BeginDate = stra['BeginDate']
                 for data in stra['Datas']:
-                    newdata=Data(self.__BarUpdate, self.__OnOrder)
-                    newdata.Instrument=data['Instrument']
+                    newdata = Data(self.__BarUpdate, self.__OnOrder)
+                    newdata.Instrument = data['Instrument']
                     newdata.Interval = data['Interval']
                     newdata.IntervalType = data['IntervalType']
-                    newdata.Lots=data['Lots']
+                    newdata.Lots = data['Lots']
                     self.Datas.append(newdata)
 
     @property
@@ -298,3 +298,23 @@ class Strategy(object):
 
     def __OnOrder(self, data=Data, order=OrderItem):
         self.DataOrder(self, data, order)
+
+    def OnOrder(self, order):
+        """委托响应"""
+        pass
+
+    def OnTrade(self, trade):
+        """成交响应"""
+        pass
+
+    def OnCancel(self, order):
+        """撤单响应"""
+        pass
+
+    def OnErrOrder(self, order):
+        """委托错误"""
+        pass
+
+    def OnErrCancel(self, order):
+        """撤单错误"""
+        pass

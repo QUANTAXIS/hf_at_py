@@ -30,3 +30,4 @@ class Test(Strategy):
         print(self.Datas[0].Tick.UpdateTime[-2:])
         if self.Tick.UpdateTime[-2:] == '00' or self.Tick.UpdateTime[-2:] == '30':
             self.Buy(self.O[0], 1, '')
+

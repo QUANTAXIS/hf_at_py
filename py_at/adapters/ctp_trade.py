@@ -284,6 +284,14 @@ class CtpTrade(TradeAdapter):
             of.StatusMsg = '{0}:{1}'.format(pRspInfo.getErrorID(), pRspInfo.getErrorMsg())
             _thread.start_new_thread(self.OnRtnErrOrder, (of, info))
 
+    def __OnRspOrderAction(self, pInputOrderAction=CThostFtdcInputOrderActionField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
+        id = "{0}|{1}|{2}".format(pInputOrderAction.SessionID, pInputOrderAction.FrontID, pInputOrderAction.OrderRef)
+        if self.IsLogin and id in self.DicOrderField:
+            info = InfoField()
+            info.ErrorID = pRspInfo.ErrorID
+            info.ErrorMsg = pRspInfo.ErrorMsg
+			self.OnErrCancel(this, self.DicOrderField[id], info)
+
     def __OnRtnInstrumentStatus(self, pInstrumentStatus=CThostFtdcInstrumentStatusField):
         self.DicInstrumentStatus[pInstrumentStatus.getInstrumentID()] = pInstrumentStatus.getInstrumentStatus()
         _thread.start_new_thread(self.OnRtnInstrumentStatus, (pInstrumentStatus.getInstrumentID(), pInstrumentStatus.getInstrumentStatus()))
@@ -306,6 +314,7 @@ class CtpTrade(TradeAdapter):
         self.t.OnRtnTrade = self.__OnRtnTrade
         self.t.OnRspOrderInsert = self.__OnRspOrder
         self.t.OnErrRtnOrderInsert = self.__OnErrOrder
+        self.t.OnRspOrderAction = self.__OnRspOrderAction
 
         self.t.OnRtnInstrumentStatus = self.__OnRtnInstrumentStatus
 
@@ -422,6 +431,10 @@ class CtpTrade(TradeAdapter):
 
     def OnRtnCancel(self, f=OrderField):
         """撤单响应"""
+        pass
+
+    def OnErrCancel(self, f=OrderField, info=InfoField):
+        """撤单失败"""
         pass
 
     def OnRtnErrOrder(self, f=OrderField, info=InfoField):
