@@ -34,9 +34,11 @@
 * git clone https://github.com/haifengat/hf_at_py.git
 ## 运行
 * 调用目录下创建log目录
-* 执行 python py_at/at_test.py ivnestor pwd
+* 执行 python py_at/at_test.py ivnestor pwd (*不要加引号*)
 ## 策略编写
 * 策略文件名与文件内的类名要一致(区分大小写)
+* 接口响应调用
+    * 参见Test.py
 ## 策略配置
 * 策略同级目录下的配置文件命名规则: 策略名_xxx
     * 如策略名ABC, 配置文件可用ABC_01 ABC_02 ...

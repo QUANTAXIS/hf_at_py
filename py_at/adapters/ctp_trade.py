@@ -179,7 +179,7 @@ class CtpTrade(TradeAdapter):
             if pOrder.getOrderSysID():
                 of.SysID = pOrder.getOrderSysID()
                 self.__dic_orderid_sysid[pOrder.getOrderSysID()] = id  # 记录sysid与orderid关联,方便Trade时查找处理
-            _thread.start_new_thread(self.OnRtnOrder, (of,))
+            # _thread.start_new_thread(self.OnRtnOrder, (of,))
 
     def __OnRtnTrade(self, f):
         """"""
@@ -235,9 +235,13 @@ class CtpTrade(TradeAdapter):
                         pf.TdPosition -= tdclose
                     pf.YdPosition -= max(0, tf.Volume - tdclose)
                 pf.Position -= tf.Volume
+        _thread.start_new_thread(self.__onRtn, (of, tf))
+        # _thread.start_new_thread(self.OnRtnOrder, (of,))
+        # _thread.start_new_thread(self.OnRtnTrade, (tf,))
 
-        _thread.start_new_thread(self.OnRtnOrder, (of,))
-        _thread.start_new_thread(self.OnRtnTrade, (tf,))
+    def __onRtn(self, of, tf):
+        self.OnRtnOrder(of)
+        self.OnRtnTrade(tf)
 
     def __OnRspOrder(self, pInputOrder=CThostFtdcInputOrderField, pRspInfo=CThostFtdcRspInfoField, nRequestID=int, bIsLast=bool):
         """"""
@@ -290,7 +294,7 @@ class CtpTrade(TradeAdapter):
             info = InfoField()
             info.ErrorID = pRspInfo.ErrorID
             info.ErrorMsg = pRspInfo.ErrorMsg
-			self.OnErrCancel(this, self.DicOrderField[id], info)
+            self.OnErrCancel(self, self.DicOrderField[id], info)
 
     def __OnRtnInstrumentStatus(self, pInstrumentStatus=CThostFtdcInstrumentStatusField):
         self.DicInstrumentStatus[pInstrumentStatus.getInstrumentID()] = pInstrumentStatus.getInstrumentStatus()

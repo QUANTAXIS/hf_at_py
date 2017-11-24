@@ -7,7 +7,7 @@ __mtime__ = '2017/11/13'
 """
 import time
 import json
-from py_at.structs import DirectType, OffsetType
+from py_at.structs import OrderField, TradeField, InfoField
 from py_at.bar import Bar
 from py_at.data import Data
 from py_at.order import OrderItem
@@ -299,22 +299,22 @@ class Strategy(object):
     def __OnOrder(self, data=Data, order=OrderItem):
         self.DataOrder(self, data, order)
 
-    def OnOrder(self, order):
+    def OnOrder(self, order=OrderField()):
         """委托响应"""
         pass
 
-    def OnTrade(self, trade):
+    def OnTrade(self, trade=TradeField()):
         """成交响应"""
         pass
 
-    def OnCancel(self, order):
+    def OnCancel(self, order=OrderField()):
         """撤单响应"""
         pass
 
-    def OnErrOrder(self, order):
+    def OnErrOrder(self, order=OrderField(), info=InfoField()):
         """委托错误"""
         pass
 
-    def OnErrCancel(self, order):
+    def OnErrCancel(self, order=OrderField(), info=InfoField()):
         """撤单错误"""
         pass

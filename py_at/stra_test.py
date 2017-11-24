@@ -200,7 +200,7 @@ class at_test(object):
     def OnRspUserLogin(self, info=InfoField()):
         """"""
 
-        print(info.ErrorID)
+        print('{0}:{1}'.format(info.ErrorID, info.ErrorMsg))
         if info.ErrorID == 7:
             _thread.start_new_thread(self.relogin, ())
         if info.ErrorID == 0:
@@ -284,11 +284,11 @@ if __name__ == '__main__':
     for stra in p.stra_instances:
         stra.EnableOrder = True
         stra.DataOrder = p.on_order
-        stra.OnOrder = p.t.OnRtnOrder
-        stra.OnTrade = p.t.OnRtnTrade
-        stra.OnCancel = p.t.OnRtnCancel
-        stra.OnErrOrder = p.t.OnRtnErrOrder
-        stra.OnErrCancel = p.t.OnErrCancel
+        p.t.OnRtnOrder = stra.OnOrder
+        p.t.OnRtnTrade = stra.OnTrade
+        p.t.OnRtnCancel = stra.OnCancel
+        p.t.OnRtnErrOrder = stra.OnErrOrder
+        p.t.OnErrCancel = stra.OnErrCancel
         for data in stra.Datas:
             data.SingleOrderOneBar = False
             p.q.ReqSubscribeMarketData(data.Instrument)
