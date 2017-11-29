@@ -19,23 +19,29 @@ class Test(Strategy):
 
     def __init__(self, jsonfile=''):
         super().__init__(jsonfile)
-        data = self.Datas[0]
-        data.Instrument = 'rb1805'
-        data.Interval = 1
-        data.IntervalType = IntervalType.Minute
-        self.BeginDate = '20171111'
         self.ordered = False
+        self.closed = False
 
     def OnBarUpdate(self, data=Data, bar=Bar):
         if self.Tick.Instrument == '':
             return
-        print(self.Datas[0].Tick.UpdateTime[-2:])
+        # print(self.Datas[0].Tick.UpdateTime[-2:])
         if self.Tick.UpdateTime[-2:] == '00' or self.Tick.UpdateTime[-2:] == '30':
             if self.ordered:
                 self.ordered = False
             else:
                 self.ordered = True
                 self.Buy(self.O[0], 1, '')
+                print(self.PositionLong)
+                print('all:{0},last:{1},notfill:{2}'.format(len(self.GetOrders()), self.GetLastOrder(), len(self.GetNotFillOrders())))
+        if self.Tick.UpdateTime[-2:] == '05' or self.Tick.UpdateTime[-2:] == '35':
+            if self.closed:
+                self.closed = False
+            else:
+                self.closed = True
+                self.Sell(self.O[0], 1, '')
+                print(self.PositionLong)
+                print('all:{0},last:{1},notfill:{2}'.format(len(self.GetOrders()), self.GetLastOrder(), len(self.GetNotFillOrders())))
 
     def OnOrder(self, order=OrderField()):
         """委托响应"""

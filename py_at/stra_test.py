@@ -22,7 +22,7 @@ from py_at.data import Data
 from py_at.order import OrderItem
 from py_at.adapters.ctp_trade import CtpTrade
 from py_at.adapters.ctp_quote import CtpQuote
-from py_at.enums import DirectType, OffsetType, OrderType
+from py_at.enums import DirectType, OffsetType, OrderType, OrderStatus
 from py_at.structs import InfoField, OrderField, TradeField, ReqPackage
 from py_at.tick import Tick
 from py_at.strategy import Strategy
@@ -49,7 +49,7 @@ class at_test(object):
         self.q = CtpQuote()
         self.t = CtpTrade()
 
-    def on_order(self, stra, data, order):
+    def on_order(self, stra=Strategy(''), data=Data(), order=OrderItem()):
         """此处调用ctp接口即可实现实际下单"""
         print('stra order')
 
@@ -57,12 +57,13 @@ class at_test(object):
 
         if stra.EnableOrder:
             print(order)
+            order_id = stra.ID * 1000 + len(stra.GetOrders()) + 1
+
             # 平今与平昨;逻辑从C# 抄过来;没提示...不知道为啥,只能盲码了.
             if order.Offset != OffsetType.Open:
-                key = '{0}_{1}'.format(
-                    order.Instrument,
-                    int(DirectType.Sell if order.Direction == DirectType.Buy
-                        else DirectType.Buy))
+                key = '{0}_{1}'.format(order.Instrument, DirectType.Sell
+                                       if order.Direction == DirectType.Buy
+                                       else DirectType.Buy)
                 # 无效,没提示...pf = PositionField()
                 pf = self.t.DicPositionField.get(key)
                 if not pf or pf.Position <= 0:
@@ -76,17 +77,43 @@ class at_test(object):
                             self.t.ReqOrderInsert(
                                 order.Instrument, order.Direction,
                                 OffsetType.CloseToday, order.Price, tdClose,
-                                OrderType.Limit, 100)
+                                OrderType.Limit, order_id)
                             volClose -= tdClose
                     if volClose > 0:
-                        self.t.ReqOrderInsert(order.Instrument,
-                                              order.Direction,
-                                              OffsetType.Close, order.Price,
-                                              volClose, OrderType.Limit, 100)
+                        self.t.ReqOrderInsert(
+                            order.Instrument, order.Direction,
+                            OffsetType.Close, order.Price, volClose,
+                            OrderType.Limit, order_id)
             else:
                 self.t.ReqOrderInsert(stra.Instrument, order.Direction,
                                       OffsetType.Open, order.Price,
-                                      order.Volume, OrderType.Limit, 100)
+                                      order.Volume, OrderType.Limit, order_id)
+
+    def get_orders(self, stra):
+        """获取策略相关的委托列表"""
+        rtn = []
+        for (k, v) in self.t.DicOrderField.items():
+            if v.Custom // 1000 == stra.ID:
+                rtn.append(v)
+        return rtn
+
+    def get_lastorder(self, stra):
+        """获取最后一个委托"""
+        rtn = self.get_orders(stra)
+        if len(rtn) > 0:
+            sorted(rtn, key=lambda o: o.Custom)
+            return rtn[-1]
+        return None
+
+    def get_notfill_orders(self, stra):
+        """获取未成交委托"""
+        rtn = []
+        orders = self.get_orders(stra)
+        if len(orders) > 0:
+            for order in orders:
+                if order.Status == OrderStatus.Normal or order.Status == OrderStatus.Partial:
+                    rtn.append(order)
+        return rtn
 
     def load_strategy(self):
         """加载../strategy目录下的策略"""
@@ -283,12 +310,16 @@ if __name__ == '__main__':
     # 注销148行
     for stra in p.stra_instances:
         stra.EnableOrder = True
-        stra.DataOrder = p.on_order
-        p.t.OnRtnOrder = stra.OnOrder
-        p.t.OnRtnTrade = stra.OnTrade
-        p.t.OnRtnCancel = stra.OnCancel
-        p.t.OnRtnErrOrder = stra.OnErrOrder
-        p.t.OnErrCancel = stra.OnErrCancel
+        stra._data_order = p.on_order
+        stra._get_orders = p.get_orders
+        stra._get_lastorder = p.get_lastorder
+        stra._get_notfill_orders = p.get_notfill_orders
+        # p.t.OnRtnOrder = stra.OnOrder
+        # p.t.OnRtnTrade = stra.OnTrade
+        # p.t.OnRtnCancel = stra.OnCancel
+        # p.t.OnRtnErrOrder = stra.OnErrOrder
+        # p.t.OnErrCancel = stra.OnErrCancel
+
         for data in stra.Datas:
             data.SingleOrderOneBar = False
             p.q.ReqSubscribeMarketData(data.Instrument)

@@ -19,7 +19,7 @@ from py_at.switch import switch
 class Data(object):
     '''数据类, 策略继承此类'''
 
-    def __init__(self, stra_barupdate, stra_onorder):
+    def __init__(self, stra_barupdate='', stra_onorder=''):
         '''初始所有变量'''
         self.stra_uppdate = stra_barupdate
         self.stra_onorder = stra_onorder
@@ -38,7 +38,6 @@ class Data(object):
         self.Tick = Tick()
         '''买卖信号'''
         self.Orders = []
-        
         '''指标字典
         策略使用的指标保存在此字典中
         以便管理程序显示和处理'''
@@ -244,10 +243,10 @@ class Data(object):
                 day = time.strftime('%W', bar_time)
                 break
 
-        bar_time = time.strptime('{0}-{1}-{2} {3}:{4}'.format(
-            year, mon, day, hour, mins), '%Y-%m-%d %H:%M')
+        bar_time = time.strptime('{0}{1}{2} {3}:{4}'.format(
+            year, mon, day, hour, mins), '%Y%m%d %H:%M')
         # time -> str
-        bar_time = time.strftime('%Y-%m-%d %H:%M:%S', bar_time)
+        bar_time = time.strftime('%Y%m%d %H:%M:%S', bar_time)
         if len(self.Bars) == 0 or self.Bars[-1].D != bar_time:
             bar.D = bar_time
             self.Bars.append(bar)

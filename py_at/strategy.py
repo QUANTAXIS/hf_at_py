@@ -43,41 +43,19 @@ class Strategy(object):
             return
         else:
             with open(jsonfile) as f:
-                stra = json.load(f)[0]
-                self.Params = stra['Paras']
-                self.BeginDate = stra['BeginDate']
-                for data in stra['Datas']:
+                stra_cfg = json.load(f)[0]
+                self.ID = stra_cfg['ID']
+                self.Params = stra_cfg['Paras']
+                self.BeginDate = stra_cfg['BeginDate']
+                if 'EndDate' in stra_cfg:
+                    self.EndDate = stra_cfg['EndDate']
+                for data in stra_cfg['Datas']:
                     newdata = Data(self.__BarUpdate, self.__OnOrder)
                     newdata.Instrument = data['Instrument']
                     newdata.Interval = data['Interval']
                     newdata.IntervalType = data['IntervalType']
                     newdata.Lots = data['Lots']
                     self.Datas.append(newdata)
-
-    @property
-    def DateD(self):
-        '''日线-日期'''
-        return self.Datas[0].DateD
-
-    @property
-    def OpenD(self):
-        '''日线-开'''
-        return self.Datas[0].OpenD
-
-    @property
-    def HighD(self):
-        '''日线-高'''
-        return self.Datas[0].HighD
-
-    @property
-    def LowD(self):
-        '''日线-低'''
-        return self.Datas[0].LowD
-
-    @property
-    def CloseD(self):
-        '''日线-收'''
-        return self.Datas[0].CloseD
 
     @property
     def Instrument(self):
@@ -289,15 +267,43 @@ class Strategy(object):
         实时行情:每分钟触发一次"""
         pass
 
-    def DataOrder(self, stra, data=Data, order=OrderItem):
+    # 外层接口调用
+    def _data_order(self, stra, data=Data(), order=OrderItem()):
         """继承类中实现此函数,有策略信号产生时调用"""
         pass
 
+    # stra._get_orders = t.getorders
+    def GetOrders(self):
+        """获取策略相关委托,返回[]"""
+        return self._get_orders(self)
+
+    def _get_orders(self, stra):
+        """获取策略相关委托,返回[]"""
+        return []
+
+    def GetLastOrder(self):
+        """获取最后一个委托"""
+        return self._get_lastorder(self)
+
+    def _get_lastorder(self, stra):
+        """获取最后一个委托"""
+        return OrderField()
+
+    def GetNotFillOrders(self):
+        """获取未成交委托"""
+        return self._get_notfill_orders(self)
+
+    def _get_notfill_orders(self, stra):
+        """获取未成交委托"""
+        return []
+
     def __BarUpdate(self, data=Data, bar=Bar):
+        """调用策略的逻辑部分"""
         self.OnBarUpdate(data, bar)
 
-    def __OnOrder(self, data=Data, order=OrderItem):
-        self.DataOrder(self, data, order)
+    def __OnOrder(self, data=Data(), order=OrderItem()):
+        """调用外部接口的reqorder"""
+        self._data_order(self, data, order)
 
     def OnOrder(self, order=OrderField()):
         """委托响应"""
