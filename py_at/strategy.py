@@ -7,6 +7,7 @@ __mtime__ = '2017/11/13'
 """
 import time
 import json
+from py_at.enums import DirectType, OffsetType, OrderType
 from py_at.structs import OrderField, TradeField, InfoField
 from py_at.bar import Bar
 from py_at.data import Data
@@ -296,6 +297,31 @@ class Strategy(object):
     def _get_notfill_orders(self, stra):
         """获取未成交委托"""
         return []
+
+    def ReqOrder(self,
+                 instrument='',
+                 dire=DirectType.Buy,
+                 offset=OffsetType.Open,
+                 price=0.0,
+                 volume=1,
+                 type=OrderType.Limit):
+        """发送委托"""
+        self._req_order(self, instrument, dire, offset, price, volume, type)
+
+    def _req_order(self, instrument, dire, offset, price, volume, type):
+        pass
+
+    def ReqCancel(self, orderid=''):
+        """发送撤单"""
+        pass
+
+    def ReqCancelAll(self):
+        """撤销所有委托"""
+        self._req_cancel_all(self, self)
+
+    def _req_cancel_all(self, stra):
+        """撤销所有委托"""
+        pass
 
     def __BarUpdate(self, data=Data, bar=Bar):
         """调用策略的逻辑部分"""

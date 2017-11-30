@@ -10,6 +10,7 @@ import time
 import numpy as np
 
 from py_at.enums import IntervalType, DirectType, OffsetType
+from py_at.structs import InstrumentField
 from py_at.tick import Tick
 from py_at.order import OrderItem
 from py_at.bar import Bar
@@ -25,37 +26,58 @@ class Data(object):
         self.stra_onorder = stra_onorder
         '''每bar只执行一次交易'''
         self.SingleOrderOneBar = False
+        '''每bar只执行一次交易'''
         '''K线序列'''
         self.Bars = []
+        '''K线序列'''
         '''合约'''
         self.Instrument = ''
+        '''合约'''
+        '''合约信息'''
+        self.InstrumentInfo = InstrumentField()
+        '''合约信息'''
         '''周期'''
         self.Interval = 1
+        '''周期'''
         '''周期类型'''
         self.IntervalType = IntervalType.Minute
+        '''周期类型'''
         '''分笔数据
         Tick.Instrument用来判断是否有实盘数据'''
         self.Tick = Tick()
+        '''分笔数据
+        Tick.Instrument用来判断是否有实盘数据'''
         '''买卖信号'''
         self.Orders = []
+        '''买卖信号'''
         '''指标字典
         策略使用的指标保存在此字典中
         以便管理程序显示和处理'''
         self.IndexDict = {}
+        '''指标字典
+        策略使用的指标保存在此字典中
+        以便管理程序显示和处理'''
         '''时间'''
         self.D = np.array([])
+        '''时间'''
         '''最高价'''
         self.H = np.array([])
+        '''最高价'''
         '''最低价'''
         self.L = np.array([])
+        '''最低价'''
         '''开盘价'''
         self.O = np.array([])
+        '''开盘价'''
         '''收盘价'''
         self.C = np.array([])
+        '''收盘价'''
         '''交易量'''
         self.V = np.array([])
+        '''交易量'''
         '''持仓量'''
         self.I = np.array([])
+        '''持仓量'''
 
         self._lastOrder = OrderItem()
 
