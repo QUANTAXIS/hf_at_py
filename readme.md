@@ -34,7 +34,7 @@
 * git clone https://github.com/haifengat/hf_at_py.git
 ## 运行
 * 调用目录下创建log目录
-* 执行 python py_at/at_test.py ivnestor pwd (*不要加引号*)
+* 执行 python py_at/stra_test.py ivnestor pwd (*不要加引号*)
 ## 策略编写
 * 策略文件名与文件内的类名要一致(区分大小写)
 * 接口响应调用

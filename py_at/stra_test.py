@@ -116,13 +116,13 @@ class at_test(object):
         return rtn
 
     def req_order(self,
-                  stra,
                   instrument='',
                   dire=DirectType.Buy,
                   offset=OffsetType.Open,
                   price=0.0,
                   volume=0,
-                  type=OrderType.Limit):
+                  type=OrderType.Limit,
+                  stra=None):
         """发送委托"""
         order_id = stra.ID * 1000 + len(stra.GetOrders()) + 1
         self.t.ReqOrderInsert(instrument, dire, offset, price, volume, type,
@@ -300,12 +300,12 @@ class at_test(object):
                investor='008109',
                pwd='1'):
         """"""
-        # self.t.OnFrontConnected = self.OnFrontConnected
-        # self.t.OnRspUserLogin = self.OnRspUserLogin
-        # self.t.OnRtnOrder = self.OnOrder
-        # self.t.OnRtnTrade = self.OnTrade
-        # self.t.OnRtnCancel = self.OnCancel
-        # self.t.OnRtnErrOrder = self.OnRtnErrOrder
+        self.t.OnFrontConnected = self.OnFrontConnected
+        self.t.OnRspUserLogin = self.OnRspUserLogin
+        self.t.OnRtnOrder = self.OnOrder
+        self.t.OnRtnTrade = self.OnTrade
+        self.t.OnRtnCancel = self.OnCancel
+        self.t.OnRtnErrOrder = self.OnRtnErrOrder
 
         self.front_trade = front_trade
         self.front_quote = front_quote
@@ -321,7 +321,8 @@ if __name__ == '__main__':
         p.CTPRun()
     else:
         p.CTPRun(investor=sys.argv[1], pwd=sys.argv[2])
-    sleep(20)
+    while not p.q.IsLogin:
+        sleep(1)
     p.load_strategy()
     p.read_data_test()
 
@@ -333,9 +334,15 @@ if __name__ == '__main__':
         stra._get_orders = p.get_orders
         stra._get_lastorder = p.get_lastorder
         stra._get_notfill_orders = p.get_notfill_orders
-        stra.ReqOrder = p.t.ReqOrderInsert
+        stra._req_order = p.req_order
         stra.ReqCancel = p.t.ReqOrderAction
         stra._req_cancel_all = p.cancel_all
+
+        p.t.OnRtnOrder = stra.OnOrder
+        p.t.OnRtnTrade = stra.OnTrade
+        p.t.OnRtnCancel = stra.OnCancel
+        p.t.OnRtnErrOrder = stra.OnErrOrder
+        p.t.OnErrCancel = stra.OnErrCancel
 
         for data in stra.Datas:
             data.SingleOrderOneBar = False

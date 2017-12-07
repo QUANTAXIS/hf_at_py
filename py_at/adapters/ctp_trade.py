@@ -324,7 +324,7 @@ class CtpTrade(TradeAdapter):
 
         of.Status = OrderStatus.Error
         of.StatusMsg = '{0}:{1}'.format(info.ErrorID, info.ErrorMsg)
-        # _thread.start_new_thread(self.OnRtnErrOrder, (of, info))
+        _thread.start_new_thread(self.OnRtnErrOrder, (of, info))
 
     def __OnErrOrder(self,
                      pInputOrder=CThostFtdcInputOrderField,
@@ -349,14 +349,14 @@ class CtpTrade(TradeAdapter):
                            pRspInfo=CThostFtdcRspInfoField,
                            nRequestID=int,
                            bIsLast=bool):
-        id = "{0}|{1}|{2}".format(pInputOrderAction.SessionID,
-                                  pInputOrderAction.FrontID,
-                                  pInputOrderAction.OrderRef)
+        id = "{0}|{1}|{2}".format(pInputOrderAction.getSessionID(),
+                                  pInputOrderAction.getFrontID(),
+                                  pInputOrderAction.getOrderRef())
         if self.IsLogin and id in self.DicOrderField:
             info = InfoField()
             info.ErrorID = pRspInfo.ErrorID
             info.ErrorMsg = pRspInfo.ErrorMsg
-            self.OnErrCancel(self, self.DicOrderField[id], info)
+            self.OnErrCancel(self.DicOrderField[id], info)
 
     def __OnRtnInstrumentStatus(
             self, pInstrumentStatus=CThostFtdcInstrumentStatusField):
@@ -481,20 +481,12 @@ class CtpTrade(TradeAdapter):
             return -1
         else:
             pOrderId = of.OrderID
-            f = CThostFtdcInputOrderActionField()
-            f.ActionFlag = ActionFlagType.Delete
-            f.BrokerID = self.BrokerID
-            f.InstrumentID = of.InstrumentID
-            f.InvestorID = of.InvestorID
-            f.SessionID = int(pOrderId.Split('|')[0])
-            f.FrontID = int(pOrderId.Split('|')[1])
-            f.OrderRef = pOrderId.Split('|')[2]
             return self.t.ReqOrderAction(
                 self.BrokerID,
                 self.Investor,
-                OrderRef=pOrderId.Split('|')[2],
-                FrontID=int(pOrderId.Split('|')[1]),
-                SessionID=int(pOrderId.Split('|')[0]),
+                OrderRef=pOrderId.split('|')[2],
+                FrontID=int(pOrderId.split('|')[1]),
+                SessionID=int(pOrderId.split('|')[0]),
                 InstrumentID=of.InstrumentID,
                 ActionFlag=ActionFlagType.Delete)
 

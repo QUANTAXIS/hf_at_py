@@ -306,9 +306,9 @@ class Strategy(object):
                  volume=1,
                  type=OrderType.Limit):
         """发送委托"""
-        self._req_order(self, instrument, dire, offset, price, volume, type)
+        self._req_order(instrument, dire, offset, price, volume, type, self)
 
-    def _req_order(self, instrument, dire, offset, price, volume, type):
+    def _req_order(self, instrument, dire, offset, price, volume, type, stra):
         pass
 
     def ReqCancel(self, orderid=''):
