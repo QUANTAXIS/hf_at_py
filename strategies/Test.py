@@ -7,11 +7,12 @@ __mtime__ = '2017/11/16'
 """
 
 from py_at.strategy import Strategy
-from py_at.enums import IntervalType
+from py_at.enums import IntervalType, DirectType, OffsetType, OrderType
 from py_at.structs import OrderField, TradeField, InfoField
 from py_at.data import Data
 from py_at.tick import Tick
 from py_at.bar import Bar
+import time
 
 
 class Test(Strategy):
@@ -21,8 +22,11 @@ class Test(Strategy):
         super().__init__(jsonfile)
         self.ordered = False
         self.closed = False
+        self.oid = 0
 
     def OnBarUpdate(self, data=Data, bar=Bar):
+        print(self.D[-1])
+        return
         if self.Tick.Instrument == '':
             return
         # print(self.Datas[0].Tick.UpdateTime[-2:])
@@ -31,9 +35,22 @@ class Test(Strategy):
                 self.ordered = False
             else:
                 self.ordered = True
-                self.Buy(self.O[0], 1, '')
-                print(self.PositionLong)
-                print('all:{0},last:{1},notfill:{2}'.format(len(self.GetOrders()), self.GetLastOrder(), len(self.GetNotFillOrders())))
+                self.ReqOrder(
+                    instrument='rb1805',
+                    dire=DirectType.Buy,
+                    offset=OffsetType.Open,
+                    price=3830,
+                    volume=1,
+                    type=OrderType.Limit)
+
+                print('1 last order == ', self.GetLastOrder())
+                print('1 order id == ', self.oid)
+                #print('1cancel orderid == ',order.OrderID)
+
+                #self.Buy(self.O[0], 1, '')
+                #print(self.PositionLong)
+                #print('all:{0},last:{1},notfill:{2}'.format(len(self.GetOrders()), self.GetLastOrder(), len(self.GetNotFillOrders())))
+        '''
         if self.Tick.UpdateTime[-2:] == '05' or self.Tick.UpdateTime[-2:] == '35':
             if self.closed:
                 self.closed = False
@@ -42,28 +59,43 @@ class Test(Strategy):
                 self.Sell(self.O[0], 1, '')
                 print(self.PositionLong)
                 print('all:{0},last:{1},notfill:{2}'.format(len(self.GetOrders()), self.GetLastOrder(), len(self.GetNotFillOrders())))
+        '''
 
     def OnOrder(self, order=OrderField()):
         """委托响应"""
-        print('strategy order')
-        print(order)
+        print('委托反应')
+        self.oid = self.GetLastOrder().OrderID
+
+        print('last order == ', self.GetLastOrder())
+        print('order id == ', self.oid)
+        print('cancel orderid == ', order.OrderID)
+        self.ReqCancel(self.oid)
+
+        #print('strategy order')
+        #print(order)
 
     def OnTrade(self, trade=TradeField()):
         """成交响应"""
+        print('成交反应')
         print('strategy trade')
         print(trade)
 
     def OnCancel(self, order):
         """撤单响应"""
-        print('strategy cancel')
-        print(order)
+        print('扯淡反应')
+        print('所撤单资料 ：', order)
+
+        #print('strategy cancel')
+        #print(order)
 
     def OnErrOrder(self, order=OrderField(), info=InfoField()):
         """委托错误"""
+        print('委托错误')
         print('strategy err order')
         print(order)
 
     def OnErrCancel(self, order=OrderField(), info=InfoField()):
         """撤单错误"""
+        print('撤单错误')
         print('strategy err cancel')
         print(order)

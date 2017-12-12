@@ -137,6 +137,7 @@ class Test:
             pRspInfo=CThostFtdcRspInfoField,
             nRequestID=int,
             bIsLast=bool):
+        print('settle')
         _thread.start_new_thread(self.StartQuote, ())
         _thread.start_new_thread(self.Qry, ())
 
