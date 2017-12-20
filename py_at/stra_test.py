@@ -13,7 +13,7 @@ import os
 import zmq  # netMQ
 import gzip  # 解压
 import json
-from time import sleep  # 可能前面的import模块对time有影响,故放在最后
+import time # from time import sleep, strftime  # 可能前面的import模块对time有影响,故放在最后
 
 sys.path.append(os.path.join(sys.path[0], '..'))  # 调用父目录下的模块
 
@@ -184,7 +184,7 @@ class at_test(object):
         for data in _stra.Datas:
             # 请求数据格式
             req = ReqPackage()
-            req.Type = 0  # BarType.Min ????
+            req.Type = 0  # BarType.Min
             req.Instrument = _stra.Instrument
             req.Begin = _stra.BeginDate
             req.End = _stra.EndDate
@@ -204,6 +204,20 @@ class at_test(object):
             for bar in bs:
                 bar['Instrument'] = data.Instrument
                 bars.append(bar)
+
+            if _stra.EndDate == time.strftime("%Y%m%d", time.localtime()):
+                # 实时K线数据
+                req.Type = 2  # BarType.Real
+                p = req.__dict__
+                socket.send_json(p)  # 直接发送__dict__转换的{}即可,不需要再转换成str
+                bs = socket.recv()  # 此处得到的是bytes
+                # gzip解压:decompress(bytes)解压,会得到解压后的bytes,再用decode转成string
+                gzipper = gzip.decompress(bs).decode()  # decode转换为string
+                # json解析:与dumps对应,将str转换为{}
+                bs = json.loads(gzipper)  # json解析
+                for bar in bs:
+                    bar['Instrument'] = data.Instrument
+                    bars.append(bar)
 
         bars.sort(key=lambda bar: bar['_id'])  # 按时间升序
         return bars
@@ -239,7 +253,7 @@ class at_test(object):
         """"""
         self.t.Release()
         print('sleep 60 seconds to wait try connect next time')
-        sleep(60)
+        time.sleep(60)
         self.t.ReqConnect(self.front_trade)
 
     def OnRspUserLogin(self, info=InfoField()):
@@ -322,7 +336,7 @@ if __name__ == '__main__':
     else:
         p.CTPRun(investor=sys.argv[1], pwd=sys.argv[2])
     while not p.q.IsLogin:
-        sleep(1)
+        time.sleep(1)
     p.load_strategy()
     p.read_data_test()
 

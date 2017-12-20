@@ -7,28 +7,25 @@ __mtime__ = '2016/8/16'
 """
 import talib
 
+from py_at.data import Data
+from py_at.bar import Bar
 from py_at.strategy import Strategy
 from py_at.enums import IntervalType
 
 
-class SMACross:
+class SMACross(Strategy):
 
-    def __init__(self):
-        super().__init__()
-        self.BeginDate = '20170101'
-        data = self.Datas[0]
-        data.Instrument = 'rb1805'
-        data.Interval = 15
-        data.IntervalType = IntervalType.Minute
+    def __init__(self, jsonfile):
+        super().__init__(jsonfile)
         self.p_ma1 = self.Params['MA1'] = 10
         self.p_ma2 = self.Params['MA2'] = 60
         self.p_lots = self.Params['Lots'] = 1
 
-    def BarUpdate(self):
+    def OnBarUpdate(self, data=Data, bar=Bar):
         if len(self.C) < self.p_ma2:
             return
 
-        print('{0}-{1}'.format(self.D[-1], self.C[-1]))
+        # print('{0}-{1}'.format(self.D[-1], self.C[-1]))
         ma1 = talib.SMA(self.C, self.p_ma1)
         ma2 = talib.SMA(self.C, self.p_ma2)
 

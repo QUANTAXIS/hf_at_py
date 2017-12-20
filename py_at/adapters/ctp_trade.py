@@ -177,8 +177,8 @@ class CtpTrade(TradeAdapter):
         of = self.DicOrderField.get(id)
         if not of:
             of = OrderField()
-            l = int(pOrder.getOrderRef())
-            of.Custom = l % 1000000
+            if pOrder.getOrderRef().isdigit():
+                of.Custom = int(pOrder.getOrderRef()) % 1000000
             of.InstrumentID = pOrder.getInstrumentID()
             of.InsertTime = pOrder.getInsertTime()
             of.Direction = DirectType.Buy if DirectionType(

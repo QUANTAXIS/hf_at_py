@@ -46,7 +46,7 @@ class Strategy(object):
             with open(jsonfile) as f:
                 stra_cfg = json.load(f)[0]
                 self.ID = stra_cfg['ID']
-                self.Params = stra_cfg['Paras']
+                self.Params = stra_cfg['Params']
                 self.BeginDate = stra_cfg['BeginDate']
                 if 'EndDate' in stra_cfg:
                     self.EndDate = stra_cfg['EndDate']

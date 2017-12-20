@@ -27,7 +27,7 @@ class Bar(object):
         self.V = v
         '''持仓价'''
         self.I = i
-        self.__preVolume = 0
+        self._pre_volume = 0
 
     def __str__(self):
         """"""

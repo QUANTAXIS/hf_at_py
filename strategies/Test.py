@@ -25,8 +25,6 @@ class Test(Strategy):
         self.oid = 0
 
     def OnBarUpdate(self, data=Data, bar=Bar):
-        print(self.D[-1])
-        return
         if self.Tick.Instrument == '':
             return
         # print(self.Datas[0].Tick.UpdateTime[-2:])
