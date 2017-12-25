@@ -6,14 +6,14 @@
   Created: 2016/5/31
 """
 
-import _thread
 import sys
 import os
 
 import zmq  # netMQ
 import gzip  # 解压
 import json
-import time # from time import sleep, strftime  # 可能前面的import模块对time有影响,故放在最后
+import _thread
+import time  # from time import sleep, strftime  # 可能前面的import模块对time有影响,故放在最后
 
 sys.path.append(os.path.join(sys.path[0], '..'))  # 调用父目录下的模块
 
@@ -308,8 +308,8 @@ class at_test(object):
                     # print(tick)
 
     def CTPRun(self,
-               front_trade='tcp://180.168.146.187:10000',
-               front_quote='tcp://180.168.146.187:10010',
+               front_trade='tcp://180.168.146.187:10001',
+               front_quote='tcp://180.168.146.187:10011',
                broker='9999',
                investor='008109',
                pwd='1'):
@@ -332,11 +332,17 @@ class at_test(object):
 if __name__ == '__main__':
     p = at_test()
     if len(sys.argv) == 1:
-        p.CTPRun()
+        print("无参时将不登录接口")
     else:
-        p.CTPRun(investor=sys.argv[1], pwd=sys.argv[2])
-    while not p.q.IsLogin:
-        time.sleep(1)
+        if len(sys.argv) == 3:
+            p.CTPRun(investor=sys.argv[1], pwd=sys.argv[2])
+        elif len(sys.argv) == 6:   # 包括前置
+            p.CTPRun(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4],
+                     sys.argv[5])
+        else:
+            sys.exit("参数数目不正确,程序退出.")
+        while not p.q.IsLogin:
+            time.sleep(1)
     p.load_strategy()
     p.read_data_test()
 
@@ -360,5 +366,6 @@ if __name__ == '__main__':
 
         for data in stra.Datas:
             data.SingleOrderOneBar = False
-            p.q.ReqSubscribeMarketData(data.Instrument)
+            if p.q and p.q.IsLogin:
+                p.q.ReqSubscribeMarketData(data.Instrument)
     input()

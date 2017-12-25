@@ -203,6 +203,9 @@ class Data(object):
 
     def on_tick(self, tick):
         '''分笔数据处理'''
+        # 避免相同tick重复调用
+        if self.Tick.UpdateTime == tick.UpdateTime and self.Tick.Volume == tick.Volume:
+            return
         self.Tick = tick
         # 取此tick对应的分钟时间
         # bar_time = time.strptime(time.strftime("%Y-%m-%d %H:%M", tick.UpdateTime), "%Y-%m-%d %H:%M")
