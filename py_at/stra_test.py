@@ -26,6 +26,7 @@ from py_at.enums import DirectType, OffsetType, OrderType, OrderStatus
 from py_at.structs import InfoField, OrderField, TradeField, ReqPackage
 from py_at.tick import Tick
 from py_at.strategy import Strategy
+from py_at.Statistics import Statistics
 
 
 class at_test(object):
@@ -51,7 +52,7 @@ class at_test(object):
 
     def on_order(self, stra=Strategy(''), data=Data(), order=OrderItem()):
         """此处调用ctp接口即可实现实际下单"""
-        print('stra order')
+        # print('stra order')
 
         # self.log.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(len(p.Orders), stra.Bars[0].D, _order.Direction, _order.Offset, _order.Price, _order.Volume, _order.Remark))
 
@@ -240,6 +241,7 @@ class at_test(object):
                 for data in stra.Datas:
                     if data.Instrument == doc["Instrument"]:
                         data.__new_min_bar__(bar)  # 调Data的onbar
+            stra=Statistics(stra)
             stra.EnableOrder = True
 
         print("\ntest history is end.")

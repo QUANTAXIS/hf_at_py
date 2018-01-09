@@ -40,6 +40,14 @@ class Strategy(object):
         '''允许委托下单'''
         self.EnableOrder = True
 
+        self.closeProfit=0
+        self.floatProfit=0
+        self.equity=0
+        self.signal=[]
+        self.listEquity=[]
+
+        self.InitFund=10000
+
         if jsonfile == '':
             return
         else:
@@ -248,18 +256,28 @@ class Strategy(object):
 
     def Buy(self, price=0.0, volume=1, remark=''):
         """买开"""
+        if not self.EnableOrder:
+            self.signal=[1,price,volume]
         self.Datas[0].Buy(price, volume, remark)
 
     def Sell(self, price, volume, remark):
         """买平"""
-        self.Datas[0].Sell(price, volume, remark)
+        if not self.EnableOrder:
+            self.signal=[-1,price,volume]
+            self.closeProfit+=(price-self.AvgEntryPriceLong)*volume
+        self.Datas[0].Sell(price,volume,remark)
 
     def SellShort(self, price, volume, remark):
         """卖开"""
+        if not self.EnableOrder:
+            self.signal=[-1,price,volume]
         self.Datas[0].SellShort(price, volume, remark)
 
     def BuyToCover(self, price, volume, remark):
         """买平"""
+        if not self.EnableOrder:
+            self.signal=[1,price,volume]
+            self.closeProfit+=(self.AvgEntryPriceShort-price)*volume
         self.Datas[0].BuyToCover(price, volume, remark)
 
     def OnBarUpdate(self, data=Data, bar=Bar):
@@ -326,6 +344,21 @@ class Strategy(object):
     def __BarUpdate(self, data=Data, bar=Bar):
         """调用策略的逻辑部分"""
         self.OnBarUpdate(data, bar)
+        if data.Interval==self.Interval and data.IntervalType==self.IntervalType:
+            if not self.EnableOrder:
+                self.signal=[0,.0,.0]
+                self.OnBarUpdate(data,bar)
+                #计算浮动盈亏
+                floatprofit=0
+                if self.PositionLong > 0:
+                    floatprofit =floatprofit+(bar.C -self.AvgEntryPriceLong)*self.PositionLong
+                if self.PositionShort>0:
+                    floatprofit =floatprofit+(self.AvgEntryPriceShort - bar.C)*self.PositionShort
+                equity=floatprofit+self.closeProfit+self.InitFund
+                self.listEquity.append([bar.D,equity,bar.O,bar.H,bar.L,bar.C,bar.V,bar.I]+self.signal)
+            else:
+                self.OnBarUpdate(data,bar)
+
 
     def __OnOrder(self, data=Data(), order=OrderItem()):
         """调用外部接口的reqorder"""

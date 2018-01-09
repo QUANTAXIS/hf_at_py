@@ -357,7 +357,7 @@ class Data(object):
                 order.AvgEntryPriceLong = (
                     self._lastOrder.PositionLong * self._lastOrder.
                     AvgEntryPriceLong + order.Volume * order.Price) / (
-                        self._lastOrder.Volume + order.Volume)
+                        self._lastOrder.PositionLong + order.Volume)
                 if self._lastOrder.PositionLong == 0:
                     order.IndexEntryLong = len(self.Bars) - 1
                     order.EntryDateLong = self.D[-1]  # str '20160630 21:25:00'
@@ -378,6 +378,8 @@ class Data(object):
                 order.IndexExitShort = len(self.Bars) - 1
                 order.ExitDateShort = self.D[-1]
                 order.ExitPriceShort = order.Price
+                if order.PositionShort == 0:
+                    order.AvgEntryPriceShort = 0
                 break
 
             if case('Sell-Open'):
@@ -385,7 +387,7 @@ class Data(object):
                 order.AvgEntryPriceShort = (
                     self._lastOrder.PositionShort * self._lastOrder.
                     AvgEntryPriceShort + order.Volume * order.Price) / (
-                        self._lastOrder.Volume + order.Volume)
+                        self._lastOrder.PositionShort + order.Volume)
                 if self._lastOrder.PositionShort == 0:
                     order.IndexEntryShort = len(self.Bars) - 1
                     order.EntryDateShort = self.D[
@@ -407,6 +409,8 @@ class Data(object):
                 order.IndexExitLong = len(self.Bars) - 1
                 order.ExitDateLong = self.D[-1]
                 order.ExitPriceLong = order.Price
+                if order.PositionLong == 0:
+                    order.AvgEntryPriceLong = 0
                 break
 
         self._lastOrder = order
