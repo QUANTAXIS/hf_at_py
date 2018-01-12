@@ -394,11 +394,29 @@ class Statistics(object):
         self.bMddRate=mrdd
         self.dDropDownPeriod=ddperiod
 
+    def plottest(self,eq):
+    
+        fig1 = plt.figure('日级别动态权益图')
+        ax1 = plt.subplot(311)
+        ax1.xaxis_date()
+        # ax1.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%m-%d'))#设置时间标签显示格式
+        # plt.xticks(pd.date_range(demo0719.index[0],demo0719.index[-1],freq='1day'))
+        plt.ylabel('Equity')
+        
+        plt.title('Equity of Day')
+
+        plt.plot(eq, color='red')
+     
+        # plt.savefig(self.path + 'Day2.png')
+
 
     def countDayPerfermence(self):
         dfday = pd.read_csv(self.path + 'DayEquity.csv', header=None, index_col=0, \
                             names=['captical'])
+        # self.plottest(dfday)
         eq = np.array(dfday['captical'])
+        
+
         eqtemp = np.zeros(len(eq))
         eqYield = np.zeros(len(eq))
         eqtemp[0] = eq[0]
@@ -729,6 +747,9 @@ class Statistics(object):
 
     def countFromTradeRecord(self,stra):
         tradeRecords=stra.Orders
+
+
+
         dictpos = {}
         listoneorder = []
         totalfee = 0
@@ -751,8 +772,9 @@ class Statistics(object):
         profit=.0
         totalProfit=.0
 
-        listSingleYield = []  # 单笔收益率列表
+        
         listSingleProfit = []  # 单笔净值列表
+        listAccumuProfit = []  # 单笔收益率列表
 
 
         
@@ -766,12 +788,22 @@ class Statistics(object):
         maxContiGainAmount = .0  # 最大连续盈利金额
         maxContiLossAmount = .0  # 最大连续亏损金额
 
+        
+        ftrade=open(self.path+'/trade.csv','w')
+        str2=''
+        for trade in tradeRecords:
+            dire= 'buy' if trade.Direction==DirectType.Buy else 'sell'
+            off = 'open' if trade.Offset==OffsetType.Open  else 'close'
+            
+            ftrade.write('%s,%s,%s,%.2f,%d,%s\n'%(trade.Instrument,dire,off,trade.Price,trade.Volume,trade.DateTime))
+        ftrade.flush()
+        ftrade.close()
         # 获取每笔利润
         for trade in tradeRecords:
             print(trade.Instrument,trade.Direction,trade.Offset,trade.Price,trade.Volume,trade.DateTime)
             # listFee = queryFeeFromSymbol(trade[1])
             # contract = queryContractFromSymbol(trade[1])
-            
+        
             fee = 0
             if trade.Offset == OffsetType.Open:
                 if (trade.Instrument, trade.Direction) in dictpos:
@@ -889,9 +921,10 @@ class Statistics(object):
         winRate = gainCount / (totalCount) if totalCount>0 else float('inf')
         plRatio = -avgGain / avgLoss if avgLoss != 0 else float('inf')
 
-
+        arrAccup=np.array(listSingleProfit)
+        listAccumuProfit=list(arrAccup.cumsum())
         # 按笔计算
-        # self.tListSingleYield = listSingleYield  # 单笔收益率列表
+        self.listAccumuProfit = listAccumuProfit  # 单笔收益率列表
         self.tListSingleProfit= listSingleProfit #单笔利润列表
         self.tTotalCount = totalCount #交易次数
         self.tGainCount = gainCount  #盈利次数
@@ -930,7 +963,7 @@ class Statistics(object):
         shorty = shortsignal.loc[:, 'sprice']
         #
         fig1=plt.figure('signal draw')
-        plt.subplot(111)
+        ax1=plt.subplot(111)
         
         # plt.xaxis_date()
         plt.xticks(rotation=45)
@@ -943,6 +976,8 @@ class Statistics(object):
         plt.scatter(longx, longy, s=160, c='m', marker='^',label='long')
 
         plt.scatter(shortx, shorty, s=160, c='k', marker='v',label='short')
+        ax2=ax1.twinx()
+        ax2.plot(dfSignal.loc[:,'equity'],c='r')
 
         plt.legend()
         plt.grid()
@@ -956,22 +991,21 @@ class Statistics(object):
 
     def plotf(self, isshow=False):
 
-        fig1 = plt.figure('日级别曲线图')
+        fig1 = plt.figure('日级别动态权益图')
         plt.subplot(311)
-        plt.ylabel('NetValue')
-        plt.title('NetValue of Day')
+        plt.ylabel('Equity')
+        plt.title('Equity of Day')
 
         plt.plot(list(self.dListDayNetValue), color='red')
         plt.subplot(312)
-        plt.ylabel('rate')
+        plt.ylabel('DropDownRate')
         plt.bar(range(len(self.bListRddrate)), self.bListRddrate, width=0.5, color='red')
         plt.subplot(313)
-        plt.ylabel('Yield')
+        plt.ylabel('Absolute Each Day Profit')
         # plt.hist(self.dListDayYield, bins=30)
         plt.bar(np.arange(len(self.dListDayYield)), self.dListDayYield)
-
         plt.savefig(self.path + 'Day.png')
-        # fig2 = plt.figure('NetValue For Each Week')
+        # fig2 = plt.figure('周级别动态权益图')
         # plt.subplot(311)
         # plt.ylabel('NetValue')
         # plt.plot(list(self.wListWeekNetValue))
@@ -1006,19 +1040,20 @@ class Statistics(object):
         # plt.ylabel('YearNum')
         # plt.hist(self.yListYearYield)
 
-        # fig4=plt.figure('E-Ratio')
-        # tem=np.array(self.listERitio)
-        # plt.plot(tem[:,0],tem[:,1])
+        fig4=plt.figure('单笔收益图')
+        plt.subplot(311)
+        plt.plot(self.listAccumuProfit)
+        plt.subplot(312)
+        plt.bar(np.arange(len(self.tListSingleProfit)), self.tListSingleProfit)
+        plt.subplot(313)
+        plt.hist(self.tListSingleProfit)
 
-
-       
         plt.show()
        
-            # self.showSignalPoint(path)
         fig1.clear()
         # fig2.clear()
         # fig3.clear()
-        # fig4.clear()
+        fig4.clear()
         plt.close()
     
     

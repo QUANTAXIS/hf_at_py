@@ -33,6 +33,12 @@
 ## 发布
 * git clone https://github.com/haifengat/hf_at_py.git
 ## 运行
+* 项目配置
+    * stra_test.json
+        * stra_path 策略路径[],可多个
+* 策略配置
+    * 与策略文件名同名的.json文件
+        * 
 * 调用目录下创建log目录
 * 执行 python py_at/stra_test.py ivnestor pwd (*不要加引号*)
 ## 策略编写

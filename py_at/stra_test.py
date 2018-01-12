@@ -29,7 +29,7 @@ from py_at.strategy import Strategy
 from py_at.Statistics import Statistics
 
 
-class at_test(object):
+class stra_test(object):
     """"""
 
     def __init__(self):
@@ -45,6 +45,8 @@ class at_test(object):
         # self.log = open('orders.csv', 'w')
         # self.log.write('')  # 清空内容
 
+        stra_cfg = json.load(open(sys.path[0] + '/stra_test.json'))
+        self.stra_path_list = stra_cfg['stra_path']
         self.stra_instances = []
 
         self.q = CtpQuote()
@@ -138,12 +140,10 @@ class at_test(object):
         """加载../strategy目录下的策略"""
         """通过文件名取到对应的继承Data的类并实例"""
         # for path in ['strategies', 'private']:
-        for path in ['strategies']:
-            files = os.listdir(
-                os.path.join(sys.path[0], '../{0}'.format(path)))
+        for path in self.stra_path_list:
+            files = os.listdir(os.path.join(sys.path[0], '../{0}'.format(path)))
             for f in files:
-                if os.path.isdir(f) or os.path.splitext(
-                        f)[0] == '__init__' or os.path.splitext(f)[-1] != ".py":
+                if os.path.isdir(f) or os.path.splitext(f)[0] == '__init__' or os.path.splitext(f)[-1] != ".py":
                     continue
                 # 目录结构???
                 module_name = "{1}.{0}".format(os.path.splitext(f)[0], path)
@@ -151,26 +151,27 @@ class at_test(object):
 
                 module = __import__(module_name)  # import module
 
-                c = getattr(getattr(module, class_name),
-                            class_name)  # 双层调用才是class,单层是为module
+                c = getattr(getattr(module, class_name), class_name)  # 双层调用才是class,单层是为module
 
                 if not issubclass(c, Strategy):  # 类c是Data的子类
                     continue
-                print("# c:{0} class:{1}", c, class_name)
-                for filename in files:
-                    if filename.find(
-                            '{0}_'.format(class_name)
-                    ) == 0 and os.path.splitext(filename)[-1] == '.json':
-                        obj = c(path + '/' + filename)
-                        print("# obj:{0}", obj)
-                        self.stra_instances.append(obj)
-                    if filename == '{0}.json'.format(class_name):
-                        obj = c(path + '/' + filename)
-                        print("# obj:{0}", obj)
-                        self.stra_instances.append(obj)
-                # obj = c()  # new class
-                # print("# obj:{0}", obj)
-                # self.stra_instances.append(obj)
+
+                # 与策略文件同名的json作为配置文件处理
+                file_name = os.path.join(sys.path[0], '../{0}/'.format(path),
+                                         '{0}.json'.format(class_name))
+                if os.path.split(file_name)[1] in files:
+                    with open(
+                            file_name, encoding='utf-8') as stra_cfg_json_file:
+                        cfg = json.load(stra_cfg_json_file)
+                        # 是否启用此策略
+                        if not cfg['enable']:
+                            continue
+                        for json_cfg in cfg['instance']:
+                            if 'enable' in json_cfg and not json_cfg['enable']:
+                                continue
+                            obj = c(json_cfg)
+                            print("# obj:{0}", obj)
+                            self.stra_instances.append(obj)
 
     def read_from_mq(self, stra):
         """netMQ"""
@@ -241,7 +242,8 @@ class at_test(object):
                 for data in stra.Datas:
                     if data.Instrument == doc["Instrument"]:
                         data.__new_min_bar__(bar)  # 调Data的onbar
-            stra=Statistics(stra)
+            # 生成策略的测试报告
+            stra = Statistics(stra)
             stra.EnableOrder = True
 
         print("\ntest history is end.")
@@ -332,7 +334,7 @@ class at_test(object):
 
 
 if __name__ == '__main__':
-    p = at_test()
+    p = stra_test()
     if len(sys.argv) == 1:
         print("无参时将不登录接口")
     else:
