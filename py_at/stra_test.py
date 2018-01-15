@@ -59,7 +59,7 @@ class stra_test(object):
         # self.log.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(len(p.Orders), stra.Bars[0].D, _order.Direction, _order.Offset, _order.Price, _order.Volume, _order.Remark))
 
         if stra.EnableOrder:
-            print(order)
+            # print(order)
             order_id = stra.ID * 1000 + len(stra.GetOrders()) + 1
 
             # 平今与平昨;逻辑从C# 抄过来;没提示...不知道为啥,只能盲码了.
@@ -164,7 +164,7 @@ class stra_test(object):
                             file_name, encoding='utf-8') as stra_cfg_json_file:
                         cfg = json.load(stra_cfg_json_file)
                         # 是否启用此策略
-                        if not cfg['enable']:
+                        if 'enable' in cfg and not cfg['enable']:
                             continue
                         for json_cfg in cfg['instance']:
                             if 'enable' in json_cfg and not json_cfg['enable']:

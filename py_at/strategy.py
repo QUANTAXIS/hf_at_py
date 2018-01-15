@@ -6,7 +6,6 @@ __author__ = 'HaiFeng'
 __mtime__ = '2017/11/13'
 """
 import time
-import json
 from py_at.enums import DirectType, OffsetType, OrderType, IntervalType
 from py_at.structs import OrderField, TradeField, InfoField
 from py_at.bar import Bar
@@ -61,7 +60,6 @@ class Strategy(object):
                 newdata.Instrument = data['Instrument']
                 newdata.Interval = data['Interval']
                 newdata.IntervalType = IntervalType[data['IntervalType']]
-                newdata.Lots = data['Lots']
                 self.Datas.append(newdata)
 
     @property
